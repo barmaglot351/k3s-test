@@ -1,12 +1,16 @@
 k3s-test
 
-git clone https://github.com/mistermedved01/k3s-test.git
-sudo chmod +x install-all.sh
-sudo bash install-all.sh
+1. git clone https://github.com/mistermedved01/k3s-test.git
 
-Edit /etc/hosts
+2. sudo chmod +x install-all.sh
+
+3. sudo bash install-all.sh
+
+4. Edit /etc/hosts
 192.168.77.77 argocd.lab.local
 *замените на IP-адрес вашей VM
+
+---
 
 **ArgoCD Web:** https://argocd.lab.local:30443
 
