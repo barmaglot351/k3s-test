@@ -1,27 +1,31 @@
-## k3s-test
+# k3s-test
 
-1. **git clone https://github.com/mistermedved01/k3s-test.git**
+Автоматизированная установка k3s, Helm и ArgoCD для тестового окружения.
 
-2. **sudo chmod +x install-all.sh**
+## Быстрый старт
 
-3. **sudo bash install-all.sh**
+```bash
+git clone https://github.com/mistermedved01/k3s-test.git
+cd k3s-test
+sudo chmod +x install-all.sh
+sudo bash install-all.sh
+```
 
-4. Добавьте запись в **/etc/hosts**
+## Настройка DNS
+
+Добавьте запись в `/etc/hosts` (замените IP на адрес вашей VM):
 
 ```
 192.168.77.77 argocd.lab.local
 ```
 
-**замените на IP-адрес вашей VM*
+## Доступ к ArgoCD
 
----
+**Web UI:** https://argocd.lab.local:30443
 
-**ArgoCD Web:** 
+**Логин:** `admin`
 
-https://argocd.lab.local:30443
-
-**ArgoCD получение логина-пароля:** 
-
+**Пароль:**
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
