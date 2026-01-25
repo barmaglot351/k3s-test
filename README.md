@@ -1,17 +1,27 @@
-k3s-test
+## k3s-test
 
-1. git clone https://github.com/mistermedved01/k3s-test.git
+1. **git clone https://github.com/mistermedved01/k3s-test.git**
 
-2. sudo chmod +x install-all.sh
+2. **sudo chmod +x install-all.sh**
 
-3. sudo bash install-all.sh
+3. **sudo bash install-all.sh**
 
-4. Edit /etc/hosts
+4. Добавьте запись в **/etc/hosts**
+
+```
 192.168.77.77 argocd.lab.local
-*замените на IP-адрес вашей VM
+```
+
+**замените на IP-адрес вашей VM*
 
 ---
 
-**ArgoCD Web:** https://argocd.lab.local:30443
+**ArgoCD Web:** 
 
-**ArgoCD получение логина-пароля:** kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+https://argocd.lab.local:30443
+
+**ArgoCD получение логина-пароля:** 
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
