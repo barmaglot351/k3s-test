@@ -17,9 +17,9 @@
 
 2. **Разверните cert-manager (обязательно перед Prowlarr):**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    kubectl get clusterissuer selfsigned-issuer
    ```
 
@@ -30,7 +30,7 @@
 
 4. **Примените ArgoCD Application для Prowlarr:**
    ```bash
-   kubectl apply -f 03-argocd/media-server-stack/prowlarr/prowlarr.yaml
+   kubectl apply -f argocd-apps/media-server-stack/prowlarr/prowlarr.yaml
    ```
 
 5. **Дождитесь готовности:**
@@ -64,7 +64,7 @@ Prowlarr - это менеджер источников медиаконтент
 - **Deployment** - контейнер Prowlarr с образом `linuxserver/prowlarr:latest`
 - **Service** - ClusterIP сервис на порту 80
 - **PersistentVolumeClaim** - PVC для config (5Gi)
-- **Ingress** - доступ через ingress-nginx с TLS
+- **Ingress** - доступ через Traefik с TLS
 - **Namespace** - `prowlarr`
 
 ### Архитектура развертывания
@@ -77,7 +77,7 @@ graph TB
     end
     
     subgraph external [External]
-        Ingress[Ingress-nginx<br/>prowlarr.lab-home.com]
+        Ingress[Traefik<br/>prowlarr.lab-home.com]
         CertManager[cert-manager<br/>TLS Certificates]
         Users[Пользователи]
         GitRepo[Git Repository<br/>Kustomize Manifests]
@@ -127,7 +127,7 @@ prowlarr/
 
 1. **Kubernetes кластер версии 1.23+**
 2. **ArgoCD установлен и настроен**
-3. **Ingress-nginx установлен**
+3. **k3s с Traefik Ingress** (k3s использует Traefik по умолчанию)
 4. **StorageClass настроен** для PersistentVolumes
 5. **cert-manager установлен и настроен**
 6. **Git репозиторий настроен в ArgoCD**
