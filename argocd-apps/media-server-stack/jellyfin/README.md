@@ -21,13 +21,13 @@
 2. **Разверните cert-manager (обязательно перед Jellyfin):**
    ```bash
    # Применить cert-manager Application
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    
    # Дождаться готовности cert-manager
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
    
    # Создать ClusterIssuer
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    
    # Проверить ClusterIssuer
    kubectl get clusterissuer selfsigned-issuer
@@ -42,7 +42,7 @@
 
 4. **Примените ArgoCD Application для Jellyfin:**
    ```bash
-   kubectl apply -f 03-argocd/media-server-stack/jellyfin/jellyfin.yaml
+   kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
    ```
 
 5. **Дождитесь готовности:**
@@ -81,7 +81,7 @@ Jellyfin - это свободная программная система ме�
 - **Deployment** - контейнер Jellyfin с образом `jellyfin/jellyfin:latest`
 - **Service** - ClusterIP сервис на порту 80
 - **PersistentVolumeClaims** - три PVC для config (5Gi), cache (10Gi) и media (50Gi)
-- **Ingress** - доступ через ingress-nginx с TLS
+- **Ingress** - доступ через Traefik с TLS
 - **Namespace** - `jellyfin`
 
 ### Архитектура развертывания
@@ -96,7 +96,7 @@ graph TB
     end
     
     subgraph external [External]
-        Ingress[Ingress-nginx<br/>jellyfin.lab-home.com]
+        Ingress[Traefik<br/>jellyfin.lab-home.com]
         CertManager[cert-manager<br/>TLS Certificates]
         Users[Пользователи]
         GitRepo[Git Repository<br/>Kustomize Manifests]
@@ -156,9 +156,10 @@ jellyfin/
    kubectl get pods -n argocd
    ```
 
-3. **Ingress-nginx установлен**
+3. **k3s с Traefik Ingress** (k3s использует Traefik по умолчанию)
    ```bash
-   kubectl get pods -n ingress-nginx
+   kubectl get ingressclass
+   # Должен быть ingressclass traefik
    ```
 
 4. **StorageClass настроен** для PersistentVolumes
@@ -253,7 +254,7 @@ kubectl describe clusterissuer selfsigned-issuer
 source:
   repoURL: https://github.com/YOUR_USERNAME/YOUR_REPO.git
   targetRevision: HEAD
-  path: 03-argocd/media-server-stack/jellyfin
+    path: argocd-apps/media-server-stack/jellyfin
 ```
 
 #### Добавить репозиторий в ArgoCD
@@ -674,18 +675,18 @@ kubectl describe node <node-name>
 
 ### Ingress не работает
 
-**Причина**: Проблема с DNS или настройками ingress-nginx
+**Причина**: Проблема с DNS или настройками Traefik
 
 **Решение**:
 ```bash
 # Проверить Ingress
 kubectl describe ingress jellyfin -n jellyfin
 
-# Проверить ingress-nginx
-kubectl get pods -n ingress-nginx
+# Проверить Traefik (в k3s встроен в системный namespace)
+kubectl get pods -n kube-system | grep traefik
 
-# Проверить логи ingress-nginx
-kubectl logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx
+# Проверить логи Traefik
+kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 ```
 
 ### Certificate не создается или не Ready
@@ -789,7 +790,7 @@ kubectl get ingress,certificate -n jellyfin
 
 1. **Сначала разверните cert-manager:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    ```
 
 2. **Дождитесь готовности cert-manager:**
@@ -799,7 +800,7 @@ kubectl get ingress,certificate -n jellyfin
 
 3. **Создайте ClusterIssuer:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    ```
 
 4. **Проверьте ClusterIssuer:**
