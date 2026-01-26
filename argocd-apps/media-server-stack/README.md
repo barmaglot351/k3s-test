@@ -18,25 +18,25 @@
 
 2. **Разверните cert-manager (обязательно первым):**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    kubectl get clusterissuer selfsigned-issuer
    ```
 
 3. **Примените ArgoCD Applications (в указанном порядке):**
    ```bash
    # Jellyfin
-   kubectl apply -f 03-argocd/media-server-stack/jellyfin/jellyfin.yaml
+   kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
    
    # Prowlarr
-   kubectl apply -f 03-argocd/media-server-stack/prowlarr/prowlarr.yaml
+   kubectl apply -f argocd-apps/media-server-stack/prowlarr/prowlarr.yaml
    
    # qBittorrent (создает общий PVC radarr-downloads)
-   kubectl apply -f 03-argocd/media-server-stack/qbittorrent/qbittorrent.yaml
+   kubectl apply -f argocd-apps/media-server-stack/qbittorrent/qbittorrent.yaml
    
    # Radarr (использует PVC radarr-downloads от qBittorrent)
-   kubectl apply -f 03-argocd/media-server-stack/radarr/radarr.yaml
+   kubectl apply -f argocd-apps/media-server-stack/radarr/radarr.yaml
    ```
 
 4. **Дождитесь готовности (5-10 минут):**
@@ -176,9 +176,10 @@ media-server-stack/
    kubectl get pods -n argocd
    ```
 
-3. **Ingress-nginx установлен**
+3. **k3s с Traefik Ingress** (k3s использует Traefik по умолчанию)
    ```bash
-   kubectl get pods -n ingress-nginx
+   kubectl get ingressclass
+   # Должен быть ingressclass traefik
    ```
 
 4. **StorageClass установлен** (обязательно; без него PVC не создадутся):
@@ -220,7 +221,7 @@ cert-manager требуется для работы с TLS сертификат�
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -243,7 +244,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -256,7 +257,7 @@ kubectl describe clusterissuer selfsigned-issuer
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/media-server-stack/jellyfin/jellyfin.yaml
+kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
 
 # Проверить статус Application
 kubectl get application jellyfin -n argocd
@@ -271,7 +272,7 @@ kubectl get pods -n jellyfin -w
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/media-server-stack/prowlarr/prowlarr.yaml
+kubectl apply -f argocd-apps/media-server-stack/prowlarr/prowlarr.yaml
 
 # Проверить статус Application
 kubectl get application prowlarr -n argocd
@@ -286,7 +287,7 @@ kubectl get pods -n prowlarr -w
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/media-server-stack/qbittorrent/qbittorrent.yaml
+kubectl apply -f argocd-apps/media-server-stack/qbittorrent/qbittorrent.yaml
 
 # Проверить статус Application
 kubectl get application qbittorrent -n argocd
@@ -309,7 +310,7 @@ kubectl get pvc -n radarr
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/media-server-stack/radarr/radarr.yaml
+kubectl apply -f argocd-apps/media-server-stack/radarr/radarr.yaml
 
 # Проверить статус Application
 kubectl get application radarr -n argocd
@@ -1289,18 +1290,18 @@ kubectl top pod <pod-name> -n <namespace>
 
 ### Ingress не работает
 
-**Причина**: Проблема с DNS или настройками ingress-nginx
+**Причина**: Проблема с DNS или настройками Traefik
 
 **Решение**:
 ```bash
 # Проверить Ingress
 kubectl describe ingress -n <namespace>
 
-# Проверить ingress-nginx
-kubectl get pods -n ingress-nginx
+# Проверить Traefik (в k3s встроен в системный namespace)
+kubectl get pods -n kube-system | grep traefik
 
-# Проверить логи ingress-nginx
-kubectl logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx
+# Проверить логи Traefik
+kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 ```
 
 ### Certificate не создается или не Ready
