@@ -21,7 +21,7 @@ sudo apt-get install -y curl wget
 
 # Установка k3s
 echo "Установка k3s..."
-curl -sfL https://get.k3s.io | sh -
+#curl -sfL https://get.k3s.io | sh -
 
 # Ожидание готовности k3s
 echo "Ожидание готовности k3s..."
