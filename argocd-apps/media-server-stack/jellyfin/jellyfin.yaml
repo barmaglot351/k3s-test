@@ -13,7 +13,7 @@ spec:
   
   # Источник - Kustomize из Git репозитория
   source:
-    repoURL: https://github.com/mistermedved01/k3s-test.git
+    repoURL: https://github.com/barmaglot351/k3s-test.git
     targetRevision: HEAD
     path: argocd-apps/media-server-stack/jellyfin
   
