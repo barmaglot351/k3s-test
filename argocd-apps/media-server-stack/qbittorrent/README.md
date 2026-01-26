@@ -9,13 +9,7 @@
 
 **Минимальные шаги для развертывания qBittorrent:**
 
-1. **Настройте StorageClass (если еще не настроен):**
-   ```bash
-   kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
-   kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-   ```
-
-2. **Разверните cert-manager (обязательно перед qBittorrent):**
+1. **Разверните cert-manager (обязательно перед qBittorrent):**
    ```bash
    kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -23,23 +17,23 @@
    kubectl get clusterissuer selfsigned-issuer
    ```
 
-3. **Примените ArgoCD Application для qBittorrent:**
+2. **Примените ArgoCD Application для qBittorrent:**
    ```bash
    kubectl apply -f argocd-apps/media-server-stack/qbittorrent/qbittorrent.yaml
    ```
 
-4. **Дождитесь готовности:**
+3. **Дождитесь готовности:**
    ```bash
    kubectl get pods -n radarr -w
    ```
 
-5. **Получите временный пароль для первого входа:**
+4. **Получите временный пароль для первого входа:**
    ```bash
    kubectl logs -n radarr deployment/qbittorrent | grep -i "temporary password"
    ```
 
-6. **Войдите в qBittorrent:**
-   - URL: `https://qbittorrent.lab-home.com`
+5. **Войдите в qBittorrent:**
+   - URL: `https://qbittorrent.lab.local`
    - Логин: `admin`
    - Пароль: временный пароль из логов
 
@@ -87,7 +81,7 @@ graph TB
     end
     
     subgraph external [External]
-        Ingress[Traefik<br/>qbittorrent.lab-home.com]
+        Ingress[Traefik<br/>qbittorrent.lab.local]
         CertManager[cert-manager<br/>TLS Certificates]
         Users[Пользователи]
         GitRepo[Git Repository<br/>Kustomize Manifests]
@@ -162,19 +156,14 @@ qbittorrent/
    # Должен быть ingressclass traefik
    ```
 
-4. **StorageClass настроен** для PersistentVolumes
-   ```bash
-   kubectl get storageclass
-   ```
-
-5. **cert-manager установлен и настроен** (см. секцию "Быстрый старт")
+4. **cert-manager установлен и настроен** (см. секцию "Быстрый старт")
    ```bash
    kubectl get clusterissuer selfsigned-issuer
    ```
 
 6. **Git репозиторий настроен в ArgoCD**
 
-7. **DNS настроен** для домена `qbittorrent.lab-home.com` (или измените в конфигурации)
+7. **DNS настроен** для домена `qbittorrent.lab.local` (или измените в конфигурации)
 
 8. **Namespace `radarr` создан** (если qBittorrent развертывается до Radarr, namespace будет создан автоматически)
 
@@ -185,28 +174,13 @@ qbittorrent/
 
 ---
 
-### 1. Настройка StorageClass
-
-Настройте StorageClass для PersistentVolumes (если еще не настроен):
-
-```bash
-# Установить local-path-provisioner
-kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
-
-# Установить local-path как StorageClass по умолчанию
-kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-
-# Проверить StorageClass
-kubectl get storageclass
-```
-
-### 2. Развертывание cert-manager
+### 1. Развертывание cert-manager
 
 qBittorrent требует cert-manager для работы с TLS сертификатами. Разверните cert-manager **до** развертывания qBittorrent:
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -259,7 +233,7 @@ kubectl describe application qbittorrent -n argocd
 
 #### Через ArgoCD UI
 
-1. Откройте ArgoCD UI: `https://argocd.lab-home.com`
+1. Откройте ArgoCD UI: `https://argocd.lab.local`
 2. Войдите с учетными данными admin
 3. Найдите Application `qbittorrent`
 4. Проверьте статус синхронизации
@@ -299,13 +273,13 @@ kubectl get ingress -n radarr qbittorrent
 
 После успешного развертывания qBittorrent будет доступен по адресу:
 
-- **URL**: `https://qbittorrent.lab-home.com` или `https://qbittorrent.lab-home.com:30443`
+- **URL**: `https://qbittorrent.lab.local` или `https://qbittorrent.lab.local:30443`
 
-⚠️ **Важно**: Если видите «default backend - 404», заходите обязательно по **hostname** (`qbittorrent.lab-home.com`), не по IP. Ingress не матчит запросы по `https://192.168.40.145:30443`. Добавьте в hosts: `192.168.40.145 qbittorrent.lab-home.com` и откройте `https://qbittorrent.lab-home.com:30443`.
+⚠️ **Важно**: Если видите «default backend - 404», заходите обязательно по **hostname** (`qbittorrent.lab.local`), не по IP. Ingress не матчит запросы по `https://192.168.40.145:30443`. Добавьте в hosts: `192.168.40.145 qbittorrent.lab.local` и откройте `https://qbittorrent.lab.local:30443`.
 
 ### Предупреждение о сертификате (self-signed)
 
-⚠️ При использовании self-signed сертификатов браузер покажет предупреждение о безопасности. Это нормально для тестовой среды. Нажмите "Advanced" → "Proceed to qbittorrent.lab-home.com" для продолжения.
+⚠️ При использовании self-signed сертификатов браузер покажет предупреждение о безопасности. Это нормально для тестовой среды. Нажмите "Advanced" → "Proceed to qbittorrent.lab.local" для продолжения.
 
 ### Первый вход
 
@@ -316,7 +290,7 @@ kubectl get ingress -n radarr qbittorrent
    Пример вывода: `The WebUI administrator password was not set. A temporary password is provided for this session: 4TyYY4cnH`
 
 2. **Войдите в qBittorrent:**
-   - Откройте `https://qbittorrent.lab-home.com`
+   - Откройте `https://qbittorrent.lab.local`
    - **Логин**: `admin`
    - **Пароль**: временный пароль из логов
 
@@ -331,7 +305,7 @@ kubectl get ingress -n radarr qbittorrent
 
 **Решение**:
 
-1. **Очистите кеш браузера и cookies** для `qbittorrent.lab-home.com`:
+1. **Очистите кеш браузера и cookies** для `qbittorrent.lab.local`:
    - Chrome/Edge: F12 → Application → Cookies → удалите все для домена
    - Или используйте режим инкогнито
 
@@ -456,7 +430,7 @@ kubectl get ingress -n radarr qbittorrent
 kubectl describe ingress qbittorrent -n radarr
 
 # Проверка доступности через curl
-curl -I https://qbittorrent.lab-home.com -k
+curl -I https://qbittorrent.lab.local -k
 ```
 
 ### Проверка Certificate
@@ -537,10 +511,10 @@ spec:
 ```yaml
 spec:
   rules:
-  - host: ваш-домен.lab-home.com
+  - host: ваш-домен.lab.local
   tls:
     - hosts:
-        - ваш-домен.lab-home.com
+        - ваш-домен.lab.local
 ```
 
 ### Настройка ресурсов
@@ -694,7 +668,7 @@ kubectl delete secret qbittorrent-tls qbittorrent-tls-ca qbittorrent-tls-chain -
    Пример: `The WebUI administrator password was not set. A temporary password is provided for this session: DDuGyKHeK`
 
 4. **Войдите с временным паролем:**
-   - Откройте `https://qbittorrent.lab-home.com:30443` или через port-forward
+   - Откройте `https://qbittorrent.lab.local:30443` или через port-forward
    - **Логин**: `admin`
    - **Пароль**: временный пароль из логов
 
@@ -709,7 +683,7 @@ kubectl delete secret qbittorrent-tls qbittorrent-tls-ca qbittorrent-tls-chain -
    ```
 
 7. **Очистите кеш браузера:**
-   - Откройте DevTools (F12) → Application → Cookies → удалите все для `qbittorrent.lab-home.com`
+   - Откройте DevTools (F12) → Application → Cookies → удалите все для `qbittorrent.lab.local`
    - Используйте режим инкогнито
    - Попробуйте другой браузер
 

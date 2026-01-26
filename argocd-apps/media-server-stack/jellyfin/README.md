@@ -9,16 +9,7 @@
 
 **Минимальные шаги для развертывания Jellyfin:**
 
-1. **Настройте StorageClass (если еще не настроен):**
-   ```bash
-   # Установить local-path-provisioner
-   kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
-   
-   # Установить local-path как StorageClass по умолчанию
-   kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-   ```
-
-2. **Разверните cert-manager (обязательно перед Jellyfin):**
+1. **Разверните cert-manager (обязательно перед Jellyfin):**
    ```bash
    # Применить cert-manager Application
    kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
@@ -33,26 +24,26 @@
    kubectl get clusterissuer selfsigned-issuer
    ```
 
-3. **Настройте Git репозиторий в ArgoCD:**
+2. **Настройте Git репозиторий в ArgoCD:**
    ```bash
    # Обновите repoURL в jellyfin.yaml на ваш Git репозиторий
    # Затем добавьте репозиторий в ArgoCD (если еще не добавлен)
    argocd repo add https://github.com/YOUR_USERNAME/YOUR_REPO.git --name lab-home --type git
    ```
 
-4. **Примените ArgoCD Application для Jellyfin:**
+3. **Примените ArgoCD Application для Jellyfin:**
    ```bash
    kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
    ```
 
-5. **Дождитесь готовности:**
+4. **Дождитесь готовности:**
    ```bash
    kubectl get pods -n jellyfin -w
    # Поды должны быть в состоянии Running
    ```
 
-6. **Войдите в Jellyfin:**
-   - URL: `https://jellyfin.lab-home.com`
+5. **Войдите в Jellyfin:**
+   - URL: `https://jellyfin.lab.local`
    - При первом входе будет запущен мастер настройки
 
 📋 **Детальные инструкции:** см. секции ниже
@@ -96,7 +87,7 @@ graph TB
     end
     
     subgraph external [External]
-        Ingress[Traefik<br/>jellyfin.lab-home.com]
+        Ingress[Traefik<br/>jellyfin.lab.local]
         CertManager[cert-manager<br/>TLS Certificates]
         Users[Пользователи]
         GitRepo[Git Repository<br/>Kustomize Manifests]
@@ -162,12 +153,7 @@ jellyfin/
    # Должен быть ingressclass traefik
    ```
 
-4. **StorageClass настроен** для PersistentVolumes
-   ```bash
-   kubectl get storageclass
-   ```
-
-5. **cert-manager установлен и настроен** (см. секцию "Быстрый старт")
+4. **cert-manager установлен и настроен** (см. секцию "Быстрый старт")
    ```bash
    kubectl get clusterissuer selfsigned-issuer
    ```
@@ -178,7 +164,7 @@ jellyfin/
    - Настроить Git репозиторий в ArgoCD
    - Указать правильный `repoURL` в `jellyfin.yaml`
 
-7. **DNS настроен** для домена `jellyfin.lab-home.com` (или измените в конфигурации)
+7. **DNS настроен** для домена `jellyfin.lab.local` (или измените в конфигурации)
 
 8. **Достаточно места на диске** для хранения медиафайлов (по умолчанию 50Gi для media PVC)
 
@@ -189,22 +175,7 @@ jellyfin/
 
 ---
 
-### 1. Настройка StorageClass
-
-Настройте StorageClass для PersistentVolumes (если еще не настроен):
-
-```bash
-# Установить local-path-provisioner
-kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
-
-# Установить local-path как StorageClass по умолчанию
-kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-
-# Проверить StorageClass
-kubectl get storageclass
-```
-
-### 2. Развертывание cert-manager
+### 1. Развертывание cert-manager
 
 Jellyfin требует cert-manager для работы с TLS сертификатами. Разверните cert-manager **до** развертывания Jellyfin:
 
@@ -317,7 +288,7 @@ argocd app sync jellyfin
 
 #### Через ArgoCD UI
 
-1. Откройте ArgoCD UI: `http://argocd.lab-home.com:30080`
+1. Откройте ArgoCD UI: `http://argocd.lab.local:30080`
 2. Войдите с учетными данными admin
 3. Найдите Application `jellyfin`
 4. Проверьте статус синхронизации
@@ -357,11 +328,11 @@ kubectl get ingress -n jellyfin
 
 После успешного развертывания Jellyfin будет доступен по адресу:
 
-- **URL**: `https://jellyfin.lab-home.com`
+- **URL**: `https://jellyfin.lab.local`
 
 ### Предупреждение о сертификате (self-signed)
 
-⚠️ При использовании self-signed сертификатов браузер покажет предупреждение о безопасности. Это нормально для тестовой среды. Нажмите "Advanced" → "Proceed to jellyfin.lab-home.com" для продолжения.
+⚠️ При использовании self-signed сертификатов браузер покажет предупреждение о безопасности. Это нормально для тестовой среды. Нажмите "Advanced" → "Proceed to jellyfin.lab.local" для продолжения.
 
 ### Первоначальная настройка
 
@@ -516,7 +487,7 @@ kubectl get ingress -n jellyfin
 kubectl describe ingress -n jellyfin
 
 # Проверка доступности через curl
-curl -I https://jellyfin.lab-home.com -k
+curl -I https://jellyfin.lab.local -k
 ```
 
 ### Проверка Certificate
@@ -589,10 +560,10 @@ spec:
 ```yaml
 spec:
   rules:
-  - host: ваш-домен.lab-home.com
+  - host: ваш-домен.lab.local
   tls:
     - hosts:
-        - ваш-домен.lab-home.com
+        - ваш-домен.lab.local
 ```
 
 И обновите переменную окружения в `base/deployment.yaml`:
@@ -600,7 +571,7 @@ spec:
 ```yaml
 env:
 - name: JELLYFIN_PublishedServerUrl
-  value: "https://ваш-домен.lab-home.com"
+  value: "https://ваш-домен.lab.local"
 ```
 
 ### Настройка ресурсов

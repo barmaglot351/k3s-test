@@ -279,10 +279,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - my-app.lab-home.com
+    - my-app.lab.local
     secretName: my-app-tls
   rules:
-  - host: my-app.lab-home.com
+  - host: my-app.lab.local
     http:
       paths:
       - path: /

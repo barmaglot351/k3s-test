@@ -12,10 +12,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - prowlarr.lab-home.com
+        - prowlarr.lab.local
       secretName: prowlarr-tls
   rules:
-  - host: prowlarr.lab-home.com
+  - host: prowlarr.lab.local
     http:
       paths:
       - path: /

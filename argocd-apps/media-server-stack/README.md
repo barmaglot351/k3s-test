@@ -9,14 +9,11 @@
 
 **Минимальные шаги для развертывания Media Server Stack:**
 
-1. **Настройте StorageClass (если еще не настроен)** (обязательно; PVC не создадутся без него):
-   ```bash
-   kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
-   kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-   kubectl get storageclass
-   ```
+0. git clone https://github.com/mistermedved01/k3s-test
 
-2. **Разверните cert-manager (обязательно первым):**
+0. cd k3s-test
+
+1. **Разверните cert-manager (обязательно первым):**
    ```bash
    kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -24,7 +21,7 @@
    kubectl get clusterissuer selfsigned-issuer
    ```
 
-3. **Примените ArgoCD Applications (в указанном порядке):**
+2. **Примените ArgoCD Applications (в указанном порядке):**
    ```bash
    # Jellyfin
    kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
@@ -39,23 +36,23 @@
    kubectl apply -f argocd-apps/media-server-stack/radarr/radarr.yaml
    ```
 
-4. **Дождитесь готовности (5-10 минут):**
+3. **Дождитесь готовности (5-10 минут):**
    ```bash
    kubectl get pods -n jellyfin -w
    kubectl get pods -n prowlarr -w
    kubectl get pods -n radarr -w  # qBittorrent и Radarr в namespace radarr
    ```
 
-5. **Получите временный пароль qBittorrent:**
+4. **Получите временный пароль qBittorrent:**
    ```bash
    kubectl logs -n radarr deployment/qbittorrent | grep -i "temporary password"
    ```
 
 6. **Войдите в приложения:**
-   - **Jellyfin**: `https://jellyfin.lab-home.com`
-   - **Prowlarr**: `https://prowlarr.lab-home.com`
-   - **qBittorrent**: `https://qbittorrent.lab-home.com` (логин: `admin`, пароль: из логов)
-   - **Radarr**: `https://radarr.lab-home.com`
+   - **Jellyfin**: `https://jellyfin.lab.local`
+   - **Prowlarr**: `https://prowlarr.lab.local`
+   - **qBittorrent**: `https://qbittorrent.lab.local` (логин: `admin`, пароль: из логов)
+   - **Radarr**: `https://radarr.lab.local`
 
 📋**Детальные инструкции:** см. секции ниже
 
@@ -182,21 +179,16 @@ media-server-stack/
    # Должен быть ingressclass traefik
    ```
 
-4. **StorageClass установлен** (обязательно; без него PVC не создадутся):
-   ```bash
-   kubectl get storageclass
-   ```
-
-5. **cert-manager установлен и настроен** (см. секцию "Быстрый старт")
+4. **cert-manager установлен и настроен** (см. секцию "Быстрый старт")
    ```bash
    kubectl get clusterissuer selfsigned-issuer
    ```
 
-6. **DNS настроен** для доменов:
-   - `jellyfin.lab-home.com`
-   - `prowlarr.lab-home.com`
-   - `qbittorrent.lab-home.com`
-   - `radarr.lab-home.com`
+5. **DNS настроен** для доменов:
+   - `jellyfin.lab.local`
+   - `prowlarr.lab.local`
+   - `qbittorrent.lab.local`
+   - `radarr.lab.local`
 
 </details>
 
@@ -266,7 +258,7 @@ kubectl get application jellyfin -n argocd
 kubectl get pods -n jellyfin -w
 ```
 
-**URL**: `https://jellyfin.lab-home.com`
+**URL**: `https://jellyfin.lab.local`
 
 ### 4. Развертывание Prowlarr
 
@@ -281,7 +273,7 @@ kubectl get application prowlarr -n argocd
 kubectl get pods -n prowlarr -w
 ```
 
-**URL**: `https://prowlarr.lab-home.com`
+**URL**: `https://prowlarr.lab.local`
 
 ### 5. Развертывание qBittorrent
 
@@ -304,7 +296,7 @@ kubectl get pvc -n radarr
 # - radarr-downloads (100Gi) ← общий PVC
 ```
 
-**URL**: `https://qbittorrent.lab-home.com`
+**URL**: `https://qbittorrent.lab.local`
 
 ### 6. Развертывание Radarr
 
@@ -328,13 +320,13 @@ kubectl get pvc -n radarr
 # - radarr-downloads (100Gi) ← тот же PVC, что у qBittorrent
 ```
 
-**URL**: `https://radarr.lab-home.com`
+**URL**: `https://radarr.lab.local`
 
 ### Проверка статуса развертывания
 
 #### Через ArgoCD UI
 
-1. Откройте ArgoCD UI: `https://argocd.lab-home.com`
+1. Откройте ArgoCD UI: `https://argocd.lab.local`
 2. Войдите с учетными данными admin
 3. Найдите Applications: `jellyfin`, `prowlarr`, `qbittorrent`, `radarr`
 4. Проверьте статус синхронизации
@@ -372,25 +364,25 @@ kubectl get ingress -A | grep -E "jellyfin|prowlarr|qbittorrent|radarr"
 
 После успешного развертывания приложения доступны по следующим адресам:
 
-- **Jellyfin**: `https://jellyfin.lab-home.com`
-- **Prowlarr**: `https://prowlarr.lab-home.com`
-- **qBittorrent**: `https://qbittorrent.lab-home.com`
-- **Radarr**: `https://radarr.lab-home.com`
+- **Jellyfin**: `https://jellyfin.lab.local`
+- **Prowlarr**: `https://prowlarr.lab.local`
+- **qBittorrent**: `https://qbittorrent.lab.local`
+- **Radarr**: `https://radarr.lab.local`
 
 ### Первый вход в Jellyfin
 
-1. Откройте `https://jellyfin.lab-home.com`
+1. Откройте `https://jellyfin.lab.local`
 2. Первый вход - настройка мастера (языка, пароля и т.д.)
 
 ### Первый вход в Prowlarr
 
-1. Откройте `https://prowlarr.lab-home.com`
+1. Откройте `https://prowlarr.lab.local`
 2. Первый вход - настройка мастера (языка, пароля и т.д.)
 
 ### Первый вход в qBittorrent
 
-1. Откройте `https://qbittorrent.lab-home.com` или `https://qbittorrent.lab-home.com:30443`
-   - **Если видите «default backend - 404»:** заходите обязательно по **hostname** (`qbittorrent.lab-home.com`), не по IP. Ingress не матчит запросы по `https://192.168.40.145:30443`. Добавьте в hosts: `192.168.40.145 qbittorrent.lab-home.com` и откройте `https://qbittorrent.lab-home.com:30443`.
+1. Откройте `https://qbittorrent.lab.local` или `https://qbittorrent.lab.local:30443`
+   - **Если видите «default backend - 404»:** заходите обязательно по **hostname** (`qbittorrent.lab.local`), не по IP. Ingress не матчит запросы по `https://192.168.40.145:30443`. Добавьте в hosts: `192.168.40.145 qbittorrent.lab.local` и откройте `https://qbittorrent.lab.local:30443`.
 
 2. **Учетные данные для первого входа:**
    - **Логин**: `admin`
@@ -400,10 +392,10 @@ kubectl get ingress -A | grep -E "jellyfin|prowlarr|qbittorrent|radarr"
    - **Важно**: После первого входа обязательно установите постоянный пароль в Settings → Web UI → Authentication
 
 3. **Если форма входа не отображается:**
-   - **Очистите кеш браузера и cookies** для `qbittorrent.lab-home.com`:
+   - **Очистите кеш браузера и cookies** для `qbittorrent.lab.local`:
      - Chrome/Edge: F12 → Application → Cookies → удалите все для домена
      - Или используйте режим инкогнито
-   - Попробуйте прямой путь: `https://qbittorrent.lab-home.com/login`
+   - Попробуйте прямой путь: `https://qbittorrent.lab.local/login`
    - Проверьте, что конфиг создан правильно:
      ```bash
      kubectl exec -n radarr deployment/qbittorrent -- \
@@ -429,13 +421,13 @@ kubectl get ingress -A | grep -E "jellyfin|prowlarr|qbittorrent|radarr"
    ```
    
    **Вариант C: Очистите кеш браузера:**
-   - Откройте DevTools (F12) → Application → Cookies → удалите все для `qbittorrent.lab-home.com`
+   - Откройте DevTools (F12) → Application → Cookies → удалите все для `qbittorrent.lab.local`
    - Используйте режим инкогнито
    - Попробуйте другой браузер
 
 ### Первый вход в Radarr
 
-1. Откройте `https://radarr.lab-home.com`
+1. Откройте `https://radarr.lab.local`
 2. Первый вход - настройка мастера (языка, пароля и т.д.)
 
 ### Предупреждение о сертификате (self-signed)
@@ -810,7 +802,7 @@ kubectl logs -n jellyfin deployment/jellyfin --tail=50
 ```yaml
 spec:
   rules:
-  - host: ваш-домен.lab-home.com
+  - host: ваш-домен.lab.local
 ```
 
 Затем синхронизируйте Application в ArgoCD.
@@ -913,7 +905,7 @@ ArgoCD автоматически синхронизирует изменени�
 
 **Решение**:
 
-1. **Если Radarr доступен через веб-интерфейс** (`https://radarr.lab-home.com`), но не через Service:
+1. **Если Radarr доступен через веб-интерфейс** (`https://radarr.lab.local`), но не через Service:
    - Проверьте доступность из Prowlarr namespace:
      ```bash
      kubectl exec -n prowlarr deployment/prowlarr -- curl -v http://radarr.radarr.svc.cluster.local:80/api/v3/system/status
@@ -1146,12 +1138,12 @@ ArgoCD автоматически синхронизирует изменени�
    ```
    
    **Вариант C: Очистите кеш браузера:**
-   - Откройте DevTools (F12) → Application → Cookies → удалите все для `qbittorrent.lab-home.com`
+   - Откройте DevTools (F12) → Application → Cookies → удалите все для `qbittorrent.lab.local`
    - Используйте режим инкогнито
    - Попробуйте другой браузер
 
 3. **Войдите с временным паролем:**
-   - Откройте `https://qbittorrent.lab-home.com:30443` или через port-forward
+   - Откройте `https://qbittorrent.lab.local:30443` или через port-forward
    - **Логин**: `admin`
    - **Пароль**: временный пароль из логов (например, `DDuGyKHeK`)
 
@@ -1377,10 +1369,10 @@ kubectl get certificaterequest -n <namespace>
 
 ## Быстрая справка по URL
 
-- **Jellyfin**: `https://jellyfin.lab-home.com`
-- **Prowlarr**: `https://prowlarr.lab-home.com`
-- **Radarr**: `https://radarr.lab-home.com`
-- **qBittorrent**: `https://qbittorrent.lab-home.com`
+- **Jellyfin**: `https://jellyfin.lab.local`
+- **Prowlarr**: `https://prowlarr.lab.local`
+- **Radarr**: `https://radarr.lab.local`
+- **qBittorrent**: `https://qbittorrent.lab.local`
 
 ## Быстрая справка по Service URLs (внутри кластера)
 

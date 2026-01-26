@@ -12,10 +12,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - qbittorrent.lab-home.com
+        - qbittorrent.lab.local
       secretName: qbittorrent-tls
   rules:
-  - host: qbittorrent.lab-home.com
+  - host: qbittorrent.lab.local
     http:
       paths:
       - path: /

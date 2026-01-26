@@ -12,10 +12,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - jellyfin.lab-home.com
+        - jellyfin.lab.local
       secretName: jellyfin-tls
   rules:
-  - host: jellyfin.lab-home.com
+  - host: jellyfin.lab.local
     http:
       paths:
       - path: /

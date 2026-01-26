@@ -26,7 +26,7 @@ spec:
           protocol: TCP
         env:
         - name: JELLYFIN_PublishedServerUrl
-          value: "https://jellyfin.lab-home.com"
+          value: "https://jellyfin.lab.local"
         volumeMounts:
         - name: config
           mountPath: /config

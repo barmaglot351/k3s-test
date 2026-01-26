@@ -9,13 +9,7 @@
 
 **Минимальные шаги для развертывания Prowlarr:**
 
-1. **Настройте StorageClass (если еще не настроен):**
-   ```bash
-   kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
-   kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-   ```
-
-2. **Разверните cert-manager (обязательно перед Prowlarr):**
+1. **Разверните cert-manager (обязательно перед Prowlarr):**
    ```bash
    kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -23,23 +17,23 @@
    kubectl get clusterissuer selfsigned-issuer
    ```
 
-3. **Настройте Git репозиторий в ArgoCD:**
+2. **Настройте Git репозиторий в ArgoCD:**
    ```bash
    argocd repo add https://github.com/YOUR_USERNAME/YOUR_REPO.git --name lab-home --type git
    ```
 
-4. **Примените ArgoCD Application для Prowlarr:**
+3. **Примените ArgoCD Application для Prowlarr:**
    ```bash
    kubectl apply -f argocd-apps/media-server-stack/prowlarr/prowlarr.yaml
    ```
 
-5. **Дождитесь готовности:**
+4. **Дождитесь готовности:**
    ```bash
    kubectl get pods -n prowlarr -w
    ```
 
-6. **Войдите в Prowlarr:**
-   - URL: `https://prowlarr.lab-home.com`
+5. **Войдите в Prowlarr:**
+   - URL: `https://prowlarr.lab.local`
 
 </details>
 
@@ -77,7 +71,7 @@ graph TB
     end
     
     subgraph external [External]
-        Ingress[Traefik<br/>prowlarr.lab-home.com]
+        Ingress[Traefik<br/>prowlarr.lab.local]
         CertManager[cert-manager<br/>TLS Certificates]
         Users[Пользователи]
         GitRepo[Git Repository<br/>Kustomize Manifests]
@@ -128,10 +122,9 @@ prowlarr/
 1. **Kubernetes кластер версии 1.23+**
 2. **ArgoCD установлен и настроен**
 3. **k3s с Traefik Ingress** (k3s использует Traefik по умолчанию)
-4. **StorageClass настроен** для PersistentVolumes
-5. **cert-manager установлен и настроен**
+4. **cert-manager установлен и настроен**
 6. **Git репозиторий настроен в ArgoCD**
-7. **DNS настроен** для домена `prowlarr.lab-home.com`
+7. **DNS настроен** для домена `prowlarr.lab.local`
 
 </details>
 
@@ -140,15 +133,7 @@ prowlarr/
 
 ---
 
-### 1. Настройка StorageClass
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
-kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-kubectl get storageclass
-```
-
-### 2. Развертывание cert-manager
+### 1. Развертывание cert-manager
 
 ```bash
 kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
@@ -157,14 +142,14 @@ kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
 kubectl get clusterissuer selfsigned-issuer
 ```
 
-### 3. Применение ArgoCD Application
+### 2. Применение ArgoCD Application
 
 ```bash
 kubectl apply -f 03-argocd/media-server-stack/prowlarr/prowlarr.yaml
 kubectl get application prowlarr -n argocd
 ```
 
-### 4. Проверка статуса
+### 3. Проверка статуса
 
 ```bash
 kubectl get pods -n prowlarr
@@ -182,7 +167,7 @@ kubectl get ingress -n prowlarr
 
 ### Доступ к Prowlarr
 
-- **URL**: `https://prowlarr.lab-home.com`
+- **URL**: `https://prowlarr.lab.local`
 
 ### Первоначальная настройка
 
@@ -254,10 +239,10 @@ kubectl describe certificate prowlarr-tls -n prowlarr
 ```yaml
 spec:
   rules:
-  - host: ваш-домен.lab-home.com
+  - host: ваш-домен.lab.local
   tls:
     - hosts:
-        - ваш-домен.lab-home.com
+        - ваш-домен.lab.local
 ```
 
 ### Настройка ресурсов
