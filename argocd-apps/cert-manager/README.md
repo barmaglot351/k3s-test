@@ -11,7 +11,7 @@
 
 1. **Примените ArgoCD Application:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    ```
 
 2. **Дождитесь готовности подов:**
@@ -21,7 +21,7 @@
 
 3. **Создайте ClusterIssuer:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    ```
 
 4. **Проверьте статус:**
@@ -100,9 +100,10 @@ cert-manager/
    kubectl get pods -n argocd
    ```
 
-3. **Ingress-nginx установлен** (для работы с Ingress ресурсами)
+3. **k3s с Traefik Ingress** (k3s использует Traefik по умолчанию)
    ```bash
-   kubectl get pods -n ingress-nginx
+   kubectl get ingressclass
+   # Должен быть ingressclass traefik
    ```
 
 </details>
@@ -115,7 +116,7 @@ cert-manager/
 Примените ArgoCD Application для cert-manager:
 
 ```bash
-kubectl apply -f 03-argocd/cert-manager/application.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 ```
 
 ### 2. Проверка статуса развертывания
@@ -177,7 +178,7 @@ Self-signed сертификаты не требуют доступа к инт�
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
 
 # 2. Примените ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # 3. Проверьте статус
 kubectl get clusterissuer selfsigned-issuer
@@ -190,7 +191,7 @@ kubectl get clusterissuer selfsigned-issuer
 1. Обновите `repoURL` в `clusterissuer-application.yaml`
 2. Примените Application:
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-application.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-application.yaml
    ```
 
 ### Let's Encrypt сертификаты (для production)
@@ -211,7 +212,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          class: traefik
 ```
 
 **Важно:** Для Let's Encrypt требуется:
@@ -237,7 +238,9 @@ global:
   ingress:
     annotations:
       cert-manager.io/cluster-issuer: "selfsigned-issuer"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    ingressClassName: traefik
     tls:
       enabled: true
 ```
