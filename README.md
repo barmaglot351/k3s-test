@@ -29,3 +29,18 @@ sudo bash install-all.sh
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
+
+## Приложения
+
+В репозитории доступны готовые ArgoCD Applications:
+
+- **cert-manager** - автоматическое управление TLS сертификатами
+- **Media Server Stack** - Jellyfin, Prowlarr, qBittorrent, Radarr
+
+Подробная документация в директории `argocd-apps/`.
+
+## Особенности k3s
+
+- Использует **Traefik** вместо nginx-ingress (встроен по умолчанию)
+- Использует **local-path** StorageClass для PersistentVolumes
+- Оптимизирован для легковесных кластеров

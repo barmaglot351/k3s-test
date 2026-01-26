@@ -13,9 +13,9 @@ spec:
   
   # Источник - Kustomize из Git репозитория
   source:
-    repoURL: https://github.com/mistermedved01/lab-home.git
+    repoURL: https://github.com/mistermedved01/k3s-test.git
     targetRevision: HEAD
-    path: 03-argocd/media-server-stack/prowlarr
+    path: argocd-apps/media-server-stack/prowlarr
   
   # Назначение - текущий кластер, namespace prowlarr
   destination:

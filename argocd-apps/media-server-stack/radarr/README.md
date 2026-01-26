@@ -17,20 +17,20 @@
 
 2. **Разверните cert-manager (обязательно перед Radarr):**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    kubectl get clusterissuer selfsigned-issuer
    ```
 
 3. **Разверните Jellyfin (для интеграции медиабиблиотеки):**
    ```bash
-   kubectl apply -f 03-argocd/media-server-stack/jellyfin/jellyfin.yaml
+   kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
    ```
 
 4. **Разверните Prowlarr (для управления индексерами):**
    ```bash
-   kubectl apply -f 03-argocd/media-server-stack/prowlarr/prowlarr.yaml
+   kubectl apply -f argocd-apps/media-server-stack/prowlarr/prowlarr.yaml
    ```
 
 5. **Настройте Git репозиторий в ArgoCD:**
@@ -40,7 +40,7 @@
 
 6. **Примените ArgoCD Application для Radarr:**
    ```bash
-   kubectl apply -f 03-argocd/media-server-stack/radarr/radarr.yaml
+   kubectl apply -f argocd-apps/media-server-stack/radarr/radarr.yaml
    ```
 
 7. **Дождитесь готовности:**
@@ -76,7 +76,7 @@ Radarr - это менеджер личной видеотеки для орга
 - **Deployment** - контейнер Radarr с образом `linuxserver/radarr:latest`
 - **Service** - ClusterIP сервис на порту 80
 - **PersistentVolumeClaims** - два PVC для config (10Gi) и media (50Gi)
-- **Ingress** - доступ через ingress-nginx с TLS
+- **Ingress** - доступ через Traefik с TLS
 - **Namespace** - `radarr`
 
 ### Архитектура развертывания
@@ -90,7 +90,7 @@ graph TB
     end
     
     subgraph external [External]
-        Ingress[Ingress-nginx<br/>radarr.lab-home.com]
+        Ingress[Traefik<br/>radarr.lab-home.com]
         CertManager[cert-manager<br/>TLS Certificates]
         Users[Пользователи]
         GitRepo[Git Repository<br/>Kustomize Manifests]
@@ -148,7 +148,7 @@ radarr/
 
 1. **Kubernetes кластер версии 1.23+**
 2. **ArgoCD установлен и настроен**
-3. **Ingress-nginx установлен**
+3. **k3s с Traefik Ingress** (k3s использует Traefik по умолчанию)
 4. **StorageClass настроен** для PersistentVolumes
 5. **cert-manager установлен и настроен**
 6. **Git репозиторий настроен в ArgoCD**

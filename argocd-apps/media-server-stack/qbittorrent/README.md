@@ -17,15 +17,15 @@
 
 2. **Разверните cert-manager (обязательно перед qBittorrent):**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    kubectl get clusterissuer selfsigned-issuer
    ```
 
 3. **Примените ArgoCD Application для qBittorrent:**
    ```bash
-   kubectl apply -f 03-argocd/media-server-stack/qbittorrent/qbittorrent.yaml
+   kubectl apply -f argocd-apps/media-server-stack/qbittorrent/qbittorrent.yaml
    ```
 
 4. **Дождитесь готовности:**
@@ -72,7 +72,7 @@ qBittorrent - это свободный BitTorrent клиент с открыт�
   - `qbittorrent-config` (5Gi) - для конфигурации
   - `radarr-downloads` (100Gi) - общий PVC с Radarr для загрузок
 - **ConfigMap** - `qbittorrent-webui-fix` - скрипт для исправления WebUI при доступе через Ingress
-- **Ingress** - доступ через ingress-nginx с TLS
+- **Ingress** - доступ через Traefik с TLS
 - **Namespace** - `radarr` (общий с Radarr для shared downloads PVC)
 
 ### Архитектура развертывания
@@ -87,7 +87,7 @@ graph TB
     end
     
     subgraph external [External]
-        Ingress[Ingress-nginx<br/>qbittorrent.lab-home.com]
+        Ingress[Traefik<br/>qbittorrent.lab-home.com]
         CertManager[cert-manager<br/>TLS Certificates]
         Users[Пользователи]
         GitRepo[Git Repository<br/>Kustomize Manifests]
@@ -156,9 +156,10 @@ qbittorrent/
    kubectl get pods -n argocd
    ```
 
-3. **Ingress-nginx установлен**
+3. **k3s с Traefik Ingress** (k3s использует Traefik по умолчанию)
    ```bash
-   kubectl get pods -n ingress-nginx
+   kubectl get ingressclass
+   # Должен быть ingressclass traefik
    ```
 
 4. **StorageClass настроен** для PersistentVolumes
@@ -623,18 +624,18 @@ kubectl describe node <node-name>
 
 ### Ingress не работает
 
-**Причина**: Проблема с DNS или настройками ingress-nginx
+**Причина**: Проблема с DNS или настройками Traefik
 
 **Решение**:
 ```bash
 # Проверить Ingress
 kubectl describe ingress qbittorrent -n radarr
 
-# Проверить ingress-nginx
-kubectl get pods -n ingress-nginx
+# Проверить Traefik (в k3s встроен в системный namespace)
+kubectl get pods -n kube-system | grep traefik
 
-# Проверить логи ingress-nginx
-kubectl logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx
+# Проверить логи Traefik
+kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 
 # Если видите "default backend - 404", используйте hostname вместо IP
 ```
@@ -789,7 +790,7 @@ argocd app sync qbittorrent
 
 1. **Сначала разверните cert-manager:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    ```
 
 2. **Дождитесь готовности cert-manager:**
@@ -799,7 +800,7 @@ argocd app sync qbittorrent
 
 3. **Создайте ClusterIssuer:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    ```
 
 4. **Проверьте ClusterIssuer:**
