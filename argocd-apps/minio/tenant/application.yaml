@@ -27,13 +27,24 @@ spec:
     server: https://kubernetes.default.svc
     namespace: minio-operator
   
-  # Игнорировать изменения статуса LoadBalancer (External IP остается pending без LoadBalancer провайдера)
-  # Это убирает статус "Progressing" для сервисов minio и minio-tenant-console
+  # Игнорировать изменения статусов, которые управляются операторами
+  # Это убирает статусы "OutOfSync" и "Progressing"
   ignoreDifferences:
+    # Игнорировать статус LoadBalancer для Service (External IP остается pending без LoadBalancer провайдера)
     - group: ""
       kind: Service
       jsonPointers:
         - /status/loadBalancer
+    # Игнорировать статус Tenant CRD (управляется MinIO Operator)
+    - group: minio.min.io
+      kind: Tenant
+      jsonPointers:
+        - /status
+    # Игнорировать статус Certificate (управляется cert-manager)
+    - group: cert-manager.io
+      kind: Certificate
+      jsonPointers:
+        - /status
   
   # Политика синхронизации
   syncPolicy:
