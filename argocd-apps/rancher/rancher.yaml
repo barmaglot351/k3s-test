@@ -64,7 +64,7 @@ spec:
       # Альтернативный вариант: использовать values файл из Git репозитория
       # Для этого нужно настроить Git репозиторий в ArgoCD и использовать:
       # valueFiles:
-      #   - $repo/03-argocd/rancher/values.yaml
+      #   - $repo/argocd-apps/rancher/values.yaml
   
   # Назначение - текущий кластер, namespace cattle-system
   destination:

@@ -21,13 +21,13 @@
 2. **Разверните cert-manager (обязательно перед Homepage):**
    ```bash
    # Применить cert-manager Application
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    
    # Дождаться готовности cert-manager
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
    
    # Создать ClusterIssuer
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    
    # Проверить ClusterIssuer
    kubectl get clusterissuer selfsigned-issuer
@@ -42,7 +42,7 @@
 
 4. **Примените ArgoCD Application для Homepage:**
    ```bash
-   kubectl apply -f 03-argocd/homepage/homepage.yaml
+   kubectl apply -f argocd-apps/homepage/homepage.yaml
    ```
 
 5. **Дождитесь готовности:**
@@ -204,7 +204,7 @@ Homepage требует cert-manager для работы с TLS сертифик
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -227,7 +227,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -248,7 +248,7 @@ kubectl describe clusterissuer selfsigned-issuer
 source:
   repoURL: https://github.com/YOUR_USERNAME/YOUR_REPO.git
   targetRevision: HEAD
-  path: 03-argocd/homepage
+  path: argocd-apps/homepage
 ```
 
 #### Добавить репозиторий в ArgoCD
@@ -283,7 +283,7 @@ argocd repo add https://github.com/YOUR_USERNAME/YOUR_REPO.git \
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/homepage/homepage.yaml
+kubectl apply -f argocd-apps/homepage/homepage.yaml
 
 # Проверить статус Application
 kubectl get application homepage -n argocd
@@ -686,7 +686,7 @@ kubectl get ingress,certificate -n homepage
 
 1. **Сначала разверните cert-manager:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    ```
 
 2. **Дождитесь готовности cert-manager:**
@@ -696,7 +696,7 @@ kubectl get ingress,certificate -n homepage
 
 3. **Создайте ClusterIssuer:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    ```
 
 4. **Проверьте ClusterIssuer:**

@@ -15,9 +15,9 @@ spec:
   
   # Источник - репозиторий Git с манифестами Tenant
   source:
-    repoURL: https://github.com/mistermedved01/lab-home.git
+    repoURL: https://github.com/barmaglot351/k3s-test.git
     targetRevision: HEAD
-    path: 03-argocd/minio/tenant
+    path: argocd-apps/minio/tenant
     directory:
       recurse: false
       include: "*.yaml"  # Включаем tenant.yaml и ingress.yaml

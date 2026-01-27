@@ -13,9 +13,9 @@ spec:
   
   # Источник - Kustomize из Git репозитория
   source:
-    repoURL: https://github.com/mistermedved01/lab-home.git
+    repoURL: https://github.com/barmaglot351/k3s-test.git
     targetRevision: HEAD
-    path: 03-argocd/homepage
+    path: argocd-apps/homepage
   
   # Назначение - текущий кластер, namespace homepage
   destination:

@@ -203,7 +203,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -218,7 +218,7 @@ kubectl describe clusterissuer selfsigned-issuer
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/media-server-stack/qbittorrent/qbittorrent.yaml
+kubectl apply -f argocd-apps/media-server-stack/qbittorrent/qbittorrent.yaml
 
 # Проверить статус Application
 kubectl get application qbittorrent -n argocd

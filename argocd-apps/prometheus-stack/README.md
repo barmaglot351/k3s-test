@@ -21,13 +21,13 @@
 2. **Разверните cert-manager (обязательно перед Prometheus Stack):**
    ```bash
    # Применить cert-manager Application
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    
    # Дождаться готовности cert-manager
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
    
    # Создать ClusterIssuer
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    
    # Проверить ClusterIssuer
    kubectl get clusterissuer selfsigned-issuer
@@ -35,7 +35,7 @@
 
 3. **Примените ArgoCD Application для Prometheus Stack:**
    ```bash
-   kubectl apply -f 03-argocd/prometheus-stack/prometheus-stack.yaml
+   kubectl apply -f argocd-apps/prometheus-stack/prometheus-stack.yaml
    ```
 
 4. **Дождитесь готовности (5-10 минут):**
@@ -184,7 +184,7 @@ Prometheus Stack требует cert-manager для работы с TLS серт
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -207,7 +207,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -222,7 +222,7 @@ kubectl describe clusterissuer selfsigned-issuer
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/prometheus-stack/prometheus-stack.yaml
+kubectl apply -f argocd-apps/prometheus-stack/prometheus-stack.yaml
 
 # Проверить статус Application
 kubectl get application prometheus-stack -n argocd
@@ -691,7 +691,7 @@ kubectl delete crd <problematic-crd-name>
 
 1. **Сначала разверните cert-manager:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    ```
 
 2. **Дождитесь готовности cert-manager:**
@@ -701,7 +701,7 @@ kubectl delete crd <problematic-crd-name>
 
 3. **Создайте ClusterIssuer:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    ```
 
 4. **Проверьте ClusterIssuer:**

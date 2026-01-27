@@ -21,13 +21,13 @@
 2. **Разверните cert-manager (обязательно перед Rancher):**
    ```bash
    # Применить cert-manager Application
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    
    # Дождаться готовности cert-manager
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
    
    # Создать ClusterIssuer
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    
    # Проверить ClusterIssuer
    kubectl get clusterissuer selfsigned-issuer
@@ -35,7 +35,7 @@
 
 3. **Примените ArgoCD Application для Rancher:**
    ```bash
-   kubectl apply -f 03-argocd/rancher/rancher.yaml
+   kubectl apply -f argocd-apps/rancher/rancher.yaml
    ```
 
 4. **Дождитесь готовности (5-10 минут):**
@@ -175,7 +175,7 @@ Rancher требует cert-manager для работы с TLS сертифик�
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -198,7 +198,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -213,7 +213,7 @@ kubectl describe clusterissuer selfsigned-issuer
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/rancher/rancher.yaml
+kubectl apply -f argocd-apps/rancher/rancher.yaml
 
 # Проверить статус Application
 kubectl get application rancher -n argocd
@@ -566,7 +566,7 @@ argocd app sync rancher
 kubectl delete application rancher -n argocd
 
 # Применить снова
-kubectl apply -f 03-argocd/rancher/rancher.yaml
+kubectl apply -f argocd-apps/rancher/rancher.yaml
 ```
 
 </details>
@@ -580,7 +580,7 @@ kubectl apply -f 03-argocd/rancher/rancher.yaml
 
 1. **Сначала разверните cert-manager:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    ```
 
 2. **Дождитесь готовности cert-manager:**
@@ -590,7 +590,7 @@ kubectl apply -f 03-argocd/rancher/rancher.yaml
 
 3. **Создайте ClusterIssuer:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    ```
 
 4. **Проверьте ClusterIssuer:**

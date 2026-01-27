@@ -181,7 +181,7 @@ Jellyfin требует cert-manager для работы с TLS сертифик
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -204,7 +204,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -260,7 +260,7 @@ argocd repo add https://github.com/YOUR_USERNAME/YOUR_REPO.git \
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/media-server-stack/jellyfin/jellyfin.yaml
+kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
 
 # Проверить статус Application
 kubectl get application jellyfin -n argocd

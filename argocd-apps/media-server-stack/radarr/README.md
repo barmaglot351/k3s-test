@@ -161,21 +161,21 @@ radarr/
 
 ```bash
 # cert-manager
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Jellyfin (опционально, но рекомендуется)
-kubectl apply -f 03-argocd/media-server-stack/jellyfin/jellyfin.yaml
+kubectl apply -f argocd-apps/media-server-stack/jellyfin/jellyfin.yaml
 
 # Prowlarr (опционально, но рекомендуется)
-kubectl apply -f 03-argocd/media-server-stack/prowlarr/prowlarr.yaml
+kubectl apply -f argocd-apps/media-server-stack/prowlarr/prowlarr.yaml
 ```
 
 ### 2. Применение ArgoCD Application
 
 ```bash
-kubectl apply -f 03-argocd/media-server-stack/radarr/radarr.yaml
+kubectl apply -f argocd-apps/media-server-stack/radarr/radarr.yaml
 kubectl get application radarr -n argocd
 ```
 

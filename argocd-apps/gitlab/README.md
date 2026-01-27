@@ -23,13 +23,13 @@
 2. **Разверните cert-manager (обязательно перед GitLab):**
    ```bash
    # Применить cert-manager Application
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    
    # Дождаться готовности cert-manager
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
    
    # Создать ClusterIssuer
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    
    # Проверить ClusterIssuer
    kubectl get clusterissuer selfsigned-issuer
@@ -37,7 +37,7 @@
 
 3. **Примените ArgoCD Application для GitLab:**
    ```bash
-   kubectl apply -f 03-argocd/gitlab/application.yaml
+   kubectl apply -f argocd-apps/gitlab/application.yaml
    ```
    
    После развертывания cert-manager автоматически создаст Certificate на основе аннотаций Ingress.
@@ -48,7 +48,7 @@
    kubectl delete certificate gitlab-wildcard-tls -n gitlab
    
    # Применить Certificate с правильной настройкой rotationPolicy
-   kubectl apply -f 03-argocd/gitlab/certificate.yaml
+   kubectl apply -f argocd-apps/gitlab/certificate.yaml
    ```
 
 5. **Дождитесь готовности подов (10-20 минут):**
@@ -204,7 +204,7 @@ GitLab требует cert-manager для работы с TLS сертифика
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -227,7 +227,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -242,7 +242,7 @@ kubectl describe clusterissuer selfsigned-issuer
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/gitlab/application.yaml
+kubectl apply -f argocd-apps/gitlab/application.yaml
 
 # Проверить статус Application
 kubectl get application gitlab -n argocd
@@ -265,7 +265,7 @@ kubectl delete certificate gitlab-wildcard-tls -n gitlab
 kubectl delete secret gitlab-wildcard-tls gitlab-wildcard-tls-ca gitlab-wildcard-tls-chain -n gitlab
 
 # Применить Certificate с правильной настройкой rotationPolicy
-kubectl apply -f 03-argocd/gitlab/certificate.yaml
+kubectl apply -f argocd-apps/gitlab/certificate.yaml
 
 # Проверить статус Certificate
 kubectl get certificate gitlab-wildcard-tls -n gitlab
@@ -671,7 +671,7 @@ kubectl delete namespace gitlab
 kubectl get namespace gitlab
 
 # После удаления namespace примените Application снова
-kubectl apply -f 03-argocd/gitlab/application.yaml
+kubectl apply -f argocd-apps/gitlab/application.yaml
 ```
 
 **Важно**: Это действие удалит все данные GitLab (репозитории, пользователи, настройки). Используйте только для новой установки или тестовой среды.
@@ -724,7 +724,7 @@ kubectl get namespace gitlab
 
 1. **Сначала разверните cert-manager:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    ```
 
 2. **Дождитесь готовности cert-manager:**
@@ -734,7 +734,7 @@ kubectl get namespace gitlab
 
 3. **Создайте ClusterIssuer:**
    ```bash
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    ```
 
 4. **Проверьте ClusterIssuer:**
@@ -786,7 +786,7 @@ kubectl delete certificate gitlab-wildcard-tls -n gitlab
 kubectl delete secret gitlab-wildcard-tls gitlab-wildcard-tls-ca gitlab-wildcard-tls-chain -n gitlab
 
 # Применить Certificate с правильными настройками
-kubectl apply -f 03-argocd/gitlab/certificate.yaml
+kubectl apply -f argocd-apps/gitlab/certificate.yaml
 
 # Проверить статус
 kubectl get certificate gitlab-wildcard-tls -n gitlab

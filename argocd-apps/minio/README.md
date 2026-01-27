@@ -21,13 +21,13 @@
 2. **Разверните cert-manager (обязательно перед MinIO):**
    ```bash
    # Применить cert-manager Application
-   kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+   kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
    
    # Дождаться готовности cert-manager
    kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
    
    # Создать ClusterIssuer
-   kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+   kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
    
    # Проверить ClusterIssuer
    kubectl get clusterissuer selfsigned-issuer
@@ -35,7 +35,7 @@
 
 3. **Примените ArgoCD Application для MinIO Operator:**
    ```bash
-   kubectl apply -f 03-argocd/minio/operator/application.yaml
+   kubectl apply -f argocd-apps/minio/operator/application.yaml
    ```
 
 4. **Дождитесь готовности Operator (2-3 минуты):**
@@ -47,7 +47,7 @@
 5. **Создайте MinIO Tenant (через ArgoCD Application):**
    ```bash
    # Применить ArgoCD Application - он автоматически возьмет tenant.yaml из Git
-   kubectl apply -f 03-argocd/minio/tenant/application.yaml
+   kubectl apply -f argocd-apps/minio/tenant/application.yaml
    ```
    
    ⚠️ **Важно**: `tenant.yaml` хранится в Git и управляется через ArgoCD. Не нужно применять его вручную - ArgoCD сделает это автоматически после применения `tenant/application.yaml`.
@@ -206,7 +206,7 @@ minio/
 
 - **`tenant/application.yaml`**: 
   - Применяется один раз → создает ArgoCD Application, который указывает ArgoCD брать `tenant.yaml` из Git
-  - Источник: Git репозиторий, путь `03-argocd/minio/tenant`
+  - Источник: Git репозиторий, путь `argocd-apps/minio/tenant`
   - Использует sync-wave: "1" для синхронизации после Operator
 
 - **`tenant/tenant.yaml`**: 
@@ -285,7 +285,7 @@ MinIO требует cert-manager для работы с TLS сертифика�
 
 ```bash
 # Применить cert-manager Application
-kubectl apply -f 03-argocd/cert-manager/cert-manager.yaml
+kubectl apply -f argocd-apps/cert-manager/cert-manager.yaml
 
 # Дождаться готовности cert-manager
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
@@ -308,7 +308,7 @@ cert-manager-webhook-xxxxxxxxxx-xxxxx     1/1     Running   0          2m
 
 ```bash
 # Применить ClusterIssuer
-kubectl apply -f 03-argocd/cert-manager/clusterissuer-selfsigned.yaml
+kubectl apply -f argocd-apps/cert-manager/clusterissuer-selfsigned.yaml
 
 # Проверить статус ClusterIssuer
 kubectl get clusterissuer selfsigned-issuer
@@ -323,7 +323,7 @@ kubectl describe clusterissuer selfsigned-issuer
 
 ```bash
 # Применить Application
-kubectl apply -f 03-argocd/minio/operator/application.yaml
+kubectl apply -f argocd-apps/minio/operator/application.yaml
 
 # Проверить статус Application
 kubectl get application minio-operator -n argocd
@@ -376,7 +376,7 @@ console-xxxxxxxxxx-xxxxx          1/1     Running   0          2m
 
 ```bash
 # Применить Tenant Application
-kubectl apply -f 03-argocd/minio/tenant/application.yaml
+kubectl apply -f argocd-apps/minio/tenant/application.yaml
 
 # Проверить статус Tenant Application
 kubectl get application minio-tenant -n argocd

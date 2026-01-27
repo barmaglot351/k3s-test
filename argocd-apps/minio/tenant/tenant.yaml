@@ -31,7 +31,7 @@ spec:
           storageClassName: local-path
           resources:
             requests:
-              storage: 10Gi
+              storage: 5Gi
   
   # Configuration для доступа к MinIO
   # Secret должен содержать config.env с MINIO_ROOT_USER и MINIO_ROOT_PASSWORD
