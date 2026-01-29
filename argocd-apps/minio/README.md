@@ -190,9 +190,11 @@ minio/
 ├── operator/
 │   └── application.yaml      # ArgoCD Application для MinIO Operator (Helm chart)
 ├── tenant/
-│   ├── application.yaml      # ArgoCD Application для MinIO Tenant (создается один раз, указывает на Git)
-│   ├── tenant.yaml           # MinIO Tenant CRD + Secret (хранится в Git, применяется ArgoCD автоматически)
-│   └── ingress.yaml          # Ingress для MinIO Tenant Console
+│   ├── application.yaml      # ArgoCD Application для MinIO Tenant (sync-wave: 1)
+│   ├── tenant.yaml           # MinIO Tenant CRD + Secret (credentials)
+│   ├── certificate.yaml      # Certificate для minio.lab.local (TLS secret)
+│   ├── ingressroute.yaml     # Traefik IngressRoute (HTTPS бэкенд + ServersTransport)
+│   └── serverstransport.yaml # Traefik ServersTransport (insecureSkipVerify для бэкенда)
 └── README.md                 # Этот файл
 ```
 
@@ -202,24 +204,27 @@ minio/
   - Применяется один раз → создает ArgoCD Application для MinIO Operator через Helm chart
   - Источник: `https://operator.min.io/` (Helm chart `operator`, версия `5.0.18`)
   - Создает namespace `minio-operator` автоматически
-  - Включает MinIO Operator Console с Ingress на `minio-operator.lab-home.com`
+  - Ingress для Operator Console: `minio-operator.lab.local` (Traefik)
 
 - **`tenant/application.yaml`**: 
-  - Применяется один раз → создает ArgoCD Application, который указывает ArgoCD брать `tenant.yaml` из Git
-  - Источник: Git репозиторий, путь `argocd-apps/minio/tenant`
-  - Использует sync-wave: "1" для синхронизации после Operator
+  - Применяется один раз → ArgoCD синхронизирует манифесты из Git (tenant, certificate, ingressroute, serverstransport)
+  - Источник: Git, путь `argocd-apps/minio/tenant`, include: `*.yaml`, exclude: `application.yaml`
+  - sync-wave: "1" — после Operator
 
 - **`tenant/tenant.yaml`**: 
-  - Хранится в Git → ArgoCD автоматически читает и применяет этот файл из репозитория
-  - Содержит MinIO Tenant CRD и Secret с credentials
-  - Определяет конфигурацию MinIO кластера (серверы, ресурсы, хранилище)
+  - MinIO Tenant CRD + Secret `storage-configuration`
+  - Конфигурация кластера (пулы, ресурсы, 10Gi local-path)
 
-- **`tenant/ingress.yaml`**: 
-  - Ingress для Tenant Console (вход с Access Key / Secret Key)
-  - Домен: `minio.lab.local`
-  - Backend: `minio-tenant-console:9443` (HTTPS)
+- **`tenant/certificate.yaml`**: 
+  - Certificate (cert-manager) для домена `minio.lab.local` → Secret `minio-tenant-console-tls`
 
-**Примечание**: Namespace `minio-operator` создается автоматически через `CreateNamespace=true` в `operator/application.yaml`.
+- **`tenant/ingressroute.yaml`**: 
+  - Traefik IngressRoute для Tenant Console: Host `minio.lab.local`, Service `minio-tenant-console:9443`, scheme `https`, serversTransport `minio-insecure`. Устраняет Internal Server Error при доступе с другого компьютера (Traefik подключается к бэкенду по HTTPS с пропуском проверки сертификата).
+
+- **`tenant/serverstransport.yaml`**: 
+  - ServersTransport `minio-insecure` с `insecureSkipVerify: true` для бэкенда MinIO Console (HTTPS с самоподписанным сертификатом).
+
+**Примечание**: Namespace `minio-operator` создается через `CreateNamespace=true` в `operator/application.yaml`. Для работы IngressRoute нужен Traefik с включённым CRD provider (см. раздел «Internal Server Error» в устранении неполадок).
 
 </details>
 
@@ -516,21 +521,21 @@ kubectl logs -n minio-operator -l app=console --tail=50
 kubectl logs -n minio-operator -l v1.min.io/tenant=minio-tenant --tail=50
 ```
 
-### Проверка сервисов и Ingress
+### Проверка сервисов и IngressRoute
 
 ```bash
 # Сервисы
 kubectl get svc -n minio-operator
 
-# Ingress
-kubectl get ingress -n minio-operator
+# IngressRoute (Traefik CRD)
+kubectl get ingressroute -n minio-operator
 
-# Детали Ingress
-kubectl describe ingress -n minio-operator
+# Детали IngressRoute
+kubectl describe ingressroute minio-tenant-console -n minio-operator
 
 # Проверка доступности через curl
 curl -I https://minio.lab.local -k
-curl -I https://minio-operator.lab-home.com -k
+curl -I https://minio-operator.lab.local -k
 ```
 
 ### Проверка Certificate
@@ -689,18 +694,19 @@ kubectl run -it --rm --image=minio/mc:latest mc-client --restart=Never -n minio-
 
 Отредактируйте соответствующие файлы:
 
-**Tenant Console** (`tenant/ingress.yaml`):
-```yaml
-spec:
-  rules:
-    - host: ваш-домен.lab-home.com
-```
+**Tenant Console** (`tenant/ingressroute.yaml` и `tenant/certificate.yaml`):
+- В `ingressroute.yaml`: `match: Host(\`ваш-домен.lab.local\`)`
+- В `certificate.yaml`: `dnsNames: [ваш-домен.lab.local]`
 
 **Operator Console** (`operator/application.yaml`):
 ```yaml
 ingress:
+  host: ваш-домен.lab.local
   hosts:
-    - ваш-домен.lab-home.com
+    - ваш-домен.lab.local
+  tls:
+    - hosts:
+        - ваш-домен.lab.local
 ```
 
 Затем синхронизируйте Application в ArgoCD.
@@ -907,20 +913,43 @@ kubectl delete pod -l app=console -n minio-operator
 image: minio/minio:RELEASE.2023-09-04T19-57-37Z  # Совместима со старыми CPU
 ```
 
-### Ingress не работает
+### Internal Server Error при открытии https://minio.lab.local
 
-**Причина**: Проблема с DNS или настройками ingress-nginx
+**Причина**: MinIO Tenant Console слушает **HTTPS на порту 9443** с самоподписанным сертификатом. Traefik должен подключаться к бэкенду по HTTPS и не проверять сертификат (ServersTransport).
+
+**Решение** (текущая конфигурация использует IngressRoute + ServersTransport):
+
+1. Убедитесь, что в кластере применены манифесты: `certificate.yaml`, `ingressroute.yaml`, `serverstransport.yaml` (ArgoCD синхронизирует их из `argocd-apps/minio/tenant`).
+2. Traefik должен быть настроен с **CRD provider** (IngressRoute — это CRD Traefik). В k3s по умолчанию Traefik может не загружать CRD. Установите CRD Traefik:
+   ```bash
+   kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v3.6/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+   ```
+   и перезапустите Traefik или дождитесь перечитывания конфигурации.
+3. Проверьте наличие ресурсов:
+   ```bash
+   kubectl get ingressroute,serverstransport,certificate -n minio-operator
+   ```
+
+**Если IngressRoute недоступен** (Traefik без CRD): можно вернуть стандартный Ingress и вручную пропатчить Service, чтобы Traefik использовал HTTPS и ServersTransport к бэкенду:
+```bash
+kubectl patch svc minio-tenant-console -n minio-operator --type=merge -p '{"metadata":{"annotations":{"traefik.ingress.kubernetes.io/service.serversscheme":"https","traefik.ingress.kubernetes.io/service.serverstransport":"minio-operator-minio-insecure@kubernetescrd"}}}'
+```
+(Сначала создайте Ingress для minio.lab.local и Certificate, затем выполните patch.)
+
+### IngressRoute / маршрут не работает (404)
+
+**Причина**: Проблема с DNS или Traefik не обрабатывает IngressRoute (CRD не установлен/не включён).
 
 **Решение**:
 ```bash
-# Проверить Ingress
-kubectl describe ingress -n minio-operator
+# Проверить IngressRoute
+kubectl describe ingressroute minio-tenant-console -n minio-operator
 
-# Проверить ingress-nginx
-kubectl get pods -n ingress-nginx
+# Проверить поды Traefik (k3s: часто в kube-system или namespace traefik)
+kubectl get pods -A | grep -i traefik
 
-# Проверить логи ingress-nginx
-kubectl logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx
+# Проверить логи Traefik
+kubectl logs -n kube-system -l app.kubernetes.io/name=traefik --tail=50
 ```
 
 ### Certificate не создается или не Ready
@@ -933,8 +962,9 @@ kubectl get certificate -n minio-operator
 
 **Решение**:
 ```bash
-# 1. Проверить аннотацию в Ingress
-kubectl get ingress -n minio-operator -o yaml | grep cert-manager
+# 1. Проверить Certificate и Secret
+kubectl get certificate -n minio-operator
+kubectl get secret minio-tenant-console-tls -n minio-operator
 
 # 2. Проверить события Certificate
 kubectl describe certificate minio-tenant-console-tls -n minio-operator

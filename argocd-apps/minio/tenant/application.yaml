@@ -20,20 +20,24 @@ spec:
     path: argocd-apps/minio/tenant
     directory:
       recurse: false
-      include: "*.yaml"  # Включаем tenant.yaml и ingress.yaml
+      include: "*.yaml"
+      exclude: "application.yaml"
   
   # Назначение - текущий кластер, namespace minio-operator
   destination:
     server: https://kubernetes.default.svc
     namespace: minio-operator
   
-  # Игнорировать изменения статуса LoadBalancer (External IP остается pending без LoadBalancer провайдера)
-  # Это убирает статус "Progressing" для сервисов minio и minio-tenant-console
+  # Игнорировать изменения статусов, управляемых операторами / cert-manager
   ignoreDifferences:
     - group: ""
       kind: Service
       jsonPointers:
         - /status/loadBalancer
+    - group: cert-manager.io
+      kind: Certificate
+      jsonPointers:
+        - /status
   
   # Политика синхронизации
   syncPolicy:
