@@ -73,7 +73,7 @@
    ```
 
 8. **Доступ к MinIO:**
-   - **MinIO Tenant Console (веб-интерфейс)**: `https://minio.lab-home.com`
+   - **MinIO Tenant Console (веб-интерфейс)**: `https://minio.lab.local`
    - **MinIO Operator Console (JWT)**: `https://minio-operator.lab-home.com`
    - **S3 Endpoint (внутренний)**: `minio-tenant-hl.minio-operator.svc.cluster.local:9000`
    - **Credentials**: `minioadmin` / `minioadmin123` (из Secret `storage-configuration`)
@@ -113,7 +113,7 @@ graph TB
     
     subgraph Infrastructure["Infrastructure"]
         Ingress_Op["Ingress-nginx<br/>minio-operator.lab-home.com"]
-        Ingress_Tenant["Ingress-nginx<br/>minio.lab-home.com"]
+        Ingress_Tenant["Ingress-nginx<br/>minio.lab.local"]
         CertManager["cert-manager<br/>TLS Certificates"]
         Storage["StorageClass<br/>local-path"]
     end
@@ -155,7 +155,7 @@ graph TB
   - Внутренний Service: `minio-tenant-hl.minio-operator.svc.cluster.local:9000`
 
 - **MinIO Tenant Console**: Веб-интерфейс для управления конкретным Tenant
-  - Доступ: `https://minio.lab-home.com`
+  - Доступ: `https://minio.lab.local`
   - **Поддерживает вход с Access Key / Secret Key**
   - Используется для управления buckets, пользователями, политиками
 
@@ -172,11 +172,11 @@ MinIO Operator предоставляет **два разных Console**:
    - Используется для управления Operator и несколькими Tenants
 
 2. **Tenant Console** (`minio-tenant-console` сервис, порт 9443)
-   - URL: `https://minio.lab-home.com`
+   - URL: `https://minio.lab.local`
    - **Поддерживает вход с Access Key / Secret Key** ✅
    - Используется для управления buckets конкретного Tenant
 
-**Для входа с Access Key / Secret Key используйте Tenant Console** (`https://minio.lab-home.com`).
+**Для входа с Access Key / Secret Key используйте Tenant Console** (`https://minio.lab.local`).
 
 </details>
 
@@ -216,7 +216,7 @@ minio/
 
 - **`tenant/ingress.yaml`**: 
   - Ingress для Tenant Console (вход с Access Key / Secret Key)
-  - Домен: `minio.lab-home.com`
+  - Домен: `minio.lab.local`
   - Backend: `minio-tenant-console:9443` (HTTPS)
 
 **Примечание**: Namespace `minio-operator` создается автоматически через `CreateNamespace=true` в `operator/application.yaml`.
@@ -254,7 +254,7 @@ minio/
    ```
 
 6. **DNS настроен** для доменов:
-   - `minio.lab-home.com` (Tenant Console)
+   - `minio.lab.local` (Tenant Console)
    - `minio-operator.lab-home.com` (Operator Console)
 
 </details>
@@ -427,7 +427,7 @@ minio-tenant-pool-0-0             1/1     Running   0          3m
 
 После успешного развертывания MinIO Tenant Console будет доступен по адресу:
 
-- **URL**: `https://minio.lab-home.com`
+- **URL**: `https://minio.lab.local`
 - **Access Key**: `minioadmin` (из Secret `storage-configuration`, `MINIO_ROOT_USER`)
 - **Secret Key**: `minioadmin123` (из Secret `storage-configuration`, `MINIO_ROOT_PASSWORD`)
 
@@ -461,7 +461,7 @@ kubectl get secret storage-configuration -n minio-operator -o jsonpath='{.data.c
 
 ### Первый вход в MinIO Tenant Console
 
-1. Откройте браузер: `https://minio.lab-home.com`
+1. Откройте браузер: `https://minio.lab.local`
 2. На странице `/login` введите:
    - **Access Key**: `minioadmin` (или из Secret `storage-configuration`, ключ `MINIO_ROOT_USER`)
    - **Secret Key**: `minioadmin123` (или из Secret `storage-configuration`, ключ `MINIO_ROOT_PASSWORD`)
@@ -478,7 +478,7 @@ kubectl get secret storage-configuration -n minio-operator -o jsonpath='{.data.c
 
 ### Предупреждение о сертификате (self-signed)
 
-⚠️При использовании self-signed сертификатов браузер покажет предупреждение о безопасности. Это нормально для тестовой среды. Нажмите "Advanced" → "Proceed to minio.lab-home.com" для продолжения.
+⚠️При использовании self-signed сертификатов браузер покажет предупреждение о безопасности. Это нормально для тестовой среды. Нажмите "Advanced" → "Proceed to minio.lab.local" для продолжения.
 
 </details>
 
@@ -529,7 +529,7 @@ kubectl get ingress -n minio-operator
 kubectl describe ingress -n minio-operator
 
 # Проверка доступности через curl
-curl -I https://minio.lab-home.com -k
+curl -I https://minio.lab.local -k
 curl -I https://minio-operator.lab-home.com -k
 ```
 
@@ -583,7 +583,7 @@ kubectl get all -n minio-operator
 
 ### Создание bucket через MinIO Tenant Console
 
-1. Откройте `https://minio.lab-home.com`
+1. Откройте `https://minio.lab.local`
 2. Войдите с credentials (Access Key / Secret Key)
 3. Нажмите "Create Bucket"
 4. Укажите имя bucket и настройки
@@ -613,7 +613,7 @@ brew install minio/stable/mc
 mc alias set minio http://minio-tenant-hl.minio-operator.svc.cluster.local:9000 <access-key> <secret-key>
 
 # Внешний доступ (если настроен Ingress)
-mc alias set minio https://minio.lab-home.com <access-key> <secret-key>
+mc alias set minio https://minio.lab.local <access-key> <secret-key>
 ```
 
 Создание bucket:
