@@ -32,19 +32,21 @@ spec:
               cpu: 500m
               memory: 512Mi
           # Ingress для MinIO Operator Console (требует JWT Token)
+          # k3s: Traefik (встроенный в k3s)
           ingress:
             enabled: true
             ingressClassName: traefik
             annotations:
               cert-manager.io/cluster-issuer: "selfsigned-issuer"
-              # Traefik (k3s): включить TLS; nginx-аннотации при ingressClassName traefik не нужны
+              traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
               traefik.ingress.kubernetes.io/router.tls: "true"
+            host: minio-operator.lab.local
             hosts:
-              - minio-operator.lab-home.com
+              - minio-operator.lab.local
             tls:
               - secretName: minio-operator-console-tls
                 hosts:
-                  - minio-operator.lab-home.com
+                  - minio-operator.lab.local
         
         # MinIO Operator
         operator:

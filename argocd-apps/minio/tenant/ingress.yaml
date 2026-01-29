@@ -1,7 +1,6 @@
 ---
-# Ingress для MinIO Tenant Console
+# Ingress для MinIO Tenant Console (k3s: Traefik)
 # Tenant Console поддерживает вход с Access Key / Secret Key
-# В отличие от Operator Console, который требует только JWT Token
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -9,15 +8,17 @@ metadata:
   namespace: minio-operator
   annotations:
     cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
+    # Бэкенд MinIO Console — HTTPS на 9443 (Traefik 3: ServersTransport для skip verify)
 spec:
-  ingressClassName: traefik  # k3s по умолчанию использует Traefik
+  ingressClassName: traefik
   tls:
     - hosts:
-        - minio.lab-home.com
+        - minio.lab.local
       secretName: minio-tenant-console-tls
   rules:
-    - host: minio.lab-home.com
+    - host: minio.lab.local
       http:
         paths:
           - path: /

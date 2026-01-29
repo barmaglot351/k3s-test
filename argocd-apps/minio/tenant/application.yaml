@@ -13,39 +13,27 @@ metadata:
 spec:
   project: default
   
-  # Источник - репозиторий Git с манифестами Tenant
+  # Источник - репозиторий Git с манифестами Tenant (k3s-test)
   source:
     repoURL: https://github.com/barmaglot351/k3s-test.git
     targetRevision: HEAD
     path: argocd-apps/minio/tenant
     directory:
       recurse: false
-      include: "*.yaml"
-      exclude: "application.yaml"  # Не применять сам Application в кластер
+      include: "*.yaml"  # Включаем tenant.yaml и ingress.yaml
   
   # Назначение - текущий кластер, namespace minio-operator
   destination:
     server: https://kubernetes.default.svc
     namespace: minio-operator
   
-  # Игнорировать изменения статусов, которые управляются операторами
-  # Это убирает статусы "OutOfSync" и "Progressing"
+  # Игнорировать изменения статуса LoadBalancer (External IP остается pending без LoadBalancer провайдера)
+  # Это убирает статус "Progressing" для сервисов minio и minio-tenant-console
   ignoreDifferences:
-    # Игнорировать статус LoadBalancer для Service (External IP остается pending без LoadBalancer провайдера)
     - group: ""
       kind: Service
       jsonPointers:
         - /status/loadBalancer
-    # Игнорировать статус Tenant CRD (управляется MinIO Operator)
-    - group: minio.min.io
-      kind: Tenant
-      jsonPointers:
-        - /status
-    # Игнорировать статус Certificate (управляется cert-manager)
-    - group: cert-manager.io
-      kind: Certificate
-      jsonPointers:
-        - /status
   
   # Политика синхронизации
   syncPolicy:
