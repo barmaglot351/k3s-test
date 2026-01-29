@@ -24,7 +24,7 @@ spec:
         replicas: 1
         ingress:
           enabled: true
-          ingressClassName: nginx
+          ingressClassName: traefik
           annotations:
             cert-manager.io/cluster-issuer: "selfsigned-issuer"
             nginx.ingress.kubernetes.io/ssl-redirect: "true"

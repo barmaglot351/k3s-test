@@ -34,13 +34,11 @@ spec:
           # Ingress для MinIO Operator Console (требует JWT Token)
           ingress:
             enabled: true
-            ingressClassName: nginx
+            ingressClassName: traefik
             annotations:
               cert-manager.io/cluster-issuer: "selfsigned-issuer"
-              nginx.ingress.kubernetes.io/ssl-redirect: "true"
-              nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-              nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-              kubernetes.io/ingress.class: nginx
+              # Traefik (k3s): включить TLS; nginx-аннотации при ingressClassName traefik не нужны
+              traefik.ingress.kubernetes.io/router.tls: "true"
             hosts:
               - minio-operator.lab-home.com
             tls:

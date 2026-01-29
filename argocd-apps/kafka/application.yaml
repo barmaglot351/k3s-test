@@ -1,0 +1,76 @@
+---
+# ArgoCD Application для Kafka (Bitnami)
+# Развертывает Kafka через Helm chart, доступ по сети через NodePort (k3s)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: kafka
+    targetRevision: "30.2.8"
+    helm:
+      values: |
+        # Один узел (controller+broker) — подходит для dev/test на k3s
+        controller:
+          replicaCount: 1
+          controllerOnly: false
+          persistence:
+            enabled: true
+            storageClass: local-path
+            size: 8Gi
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+
+        broker:
+          replicaCount: 0
+
+        # Доступ по сети: NodePort (k3s без LoadBalancer)
+        service:
+          type: NodePort
+          nodePorts:
+            client: "30092"
+
+        # SASL: один пользователь для подключения (dev)
+        listeners:
+          client:
+            protocol: SASL_PLAINTEXT
+        sasl:
+          client:
+            users: "kafka"
+            passwords: "kafka-secret"
+
+        # Сеть: разрешить подключения снаружи
+        networkPolicy:
+          enabled: true
+          allowExternal: true
+          allowExternalEgress: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kafka
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
