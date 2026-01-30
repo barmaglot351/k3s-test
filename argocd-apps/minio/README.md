@@ -72,7 +72,16 @@
    # Secret Key: minioadmin123
    ```
 
-8. **Доступ к MinIO:**
+
+8. **Для отображения веб-консоли необходимо применить скрипт**
+  ```sudo kubectl annotate service minio-tenant-console \
+            -n minio-operator \
+            traefik.ingress.kubernetes.io/service.serversscheme=https \
+            traefik.ingress.kubernetes.io/service.serverstransport=minio-operator-minio-insecure@kubernetescrd \
+            --overwrite
+  ```
+
+9. **Доступ к MinIO:**
    - **MinIO Tenant Console (веб-интерфейс)**: `https://minio.lab.local`
    - **MinIO Operator Console (JWT)**: `https://minio-operator.lab-home.com`
    - **S3 Endpoint (внутренний)**: `minio-tenant-hl.minio-operator.svc.cluster.local:9000`
