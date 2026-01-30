@@ -5,7 +5,7 @@
 ## Быстрый старт
 
 ```bash
-git clone https://github.com/mistermedved01/k3s-test.git
+git clone https://github.com/barmaglot351/k3s-test.git
 cd k3s-test
 sudo chmod +x install-all.sh
 sudo bash install-all.sh

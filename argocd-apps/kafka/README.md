@@ -1,92 +1,250 @@
-# Kafka (ArgoCD Application)
+# Kafka (Strimzi) ArgoCD Application (k3s)
 
-Конфигурация для развертывания Apache Kafka через ArgoCD на k3s. Используется Helm chart Bitnami Kafka. Доступ по сети — через NodePort (порт 30092).
+Конфигурация для развертывания Apache Kafka через Strimzi Operator и Kafka Cluster в **k3s** с ArgoCD. Стиль развертывания аналогичен MinIO: Operator (Helm) + Cluster (манифесты из Git).
 
-## Быстрый старт
+<details>
+<summary><strong>🚀 Быстрый старт</strong></summary>
 
-1. **StorageClass** (если ещё нет): в кластере должен быть `local-path` или другой StorageClass по умолчанию.
+---
 
-2. **Применить Application:**
+**Минимальные шаги для развертывания Kafka:**
+
+1. **StorageClass:** в k3s по умолчанию есть `local-path`. Проверка: `kubectl get storageclass`.
+
+2. **Примените ArgoCD Application для Strimzi Operator:**
    ```bash
-   kubectl apply -f argocd-apps/kafka/application.yaml
+   kubectl apply -f argocd-apps/kafka/operator/application.yaml
    ```
 
-3. **Дождаться готовности (2–5 минут):**
+3. **Дождитесь готовности Operator (1–2 минуты):**
+   ```bash
+   kubectl get pods -n strimzi -w
+   # Под strimzi-cluster-operator должен быть в состоянии Running
+   ```
+
+4. **Создайте Kafka Cluster (через ArgoCD Application):**
+   ```bash
+   kubectl apply -f argocd-apps/kafka/cluster/application.yaml
+   ```
+
+5. **Дождитесь готовности Kafka (3–5 минут):**
    ```bash
    kubectl get pods -n kafka -w
-   # Пода kafka-0 в состоянии Running
+   # Поды my-cluster-kafka, my-cluster-zookeeper, entity-operator должны быть Running
    ```
 
-4. **Подключение по сети:**
-   - **Внутри кластера (из подов):** `kafka.kafka.svc.cluster.local:9092`
-   - **Снаружи (с хоста/сети):** `<IP-ноды-k3s>:30092`
+6. **Подключение к Kafka (внутри кластера):**
+   - **Bootstrap (plain):** `my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092`
+   - **Bootstrap (TLS):** `my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9093`
 
-   Учётные данные SASL (по умолчанию):
-   - Пользователь: `kafka`
-   - Пароль: `kafka-secret`
+7. **Kafka UI (веб-интерфейс) + Ingress (опционально):**
+   ```bash
+   kubectl apply -f argocd-apps/kafka/ui-application.yaml -n argocd
+   ```
+   Манифест лежит в **kafka/** (не в ui/), чтобы при sync в namespace kafka не создавался лишний Application. После sync: **https://kafka-ui.lab.local** (добавьте в hosts IP узла k3s).
 
-## Примеры подключения
+📋 **Детальные инструкции:** см. секции ниже
 
-### Внутри кластера (bootstrap)
+</details>
 
-```
-bootstrap.servers=kafka.kafka.svc.cluster.local:9092
-sasl.mechanism=PLAIN
-security.protocol=SASL_PLAINTEXT
-sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka" password="kafka-secret";
-```
+<details>
+<summary><strong>🔍 Проверка в кластере</strong></summary>
 
-### Снаружи (NodePort)
+---
 
-Замените `<NODE_IP>` на IP ноды k3s (или localhost, если подключаетесь с той же машины):
-
-```
-bootstrap.servers=<NODE_IP>:30092
-sasl.mechanism=PLAIN
-security.protocol=SASL_PLAINTEXT
-sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka" password="kafka-secret";
-```
-
-### kafka-console-producer / consumer (внутри кластера)
+Выполняйте команды **на узле k3s** (например, SSH на `192.168.40.145`) или с машины, где в `KUBECONFIG` указан API-сервер этого кластера.
 
 ```bash
-kubectl run -it --rm kafka-client --image=bitnami/kafka:latest -n kafka -- \
-  kafka-console-producer.sh \
-  --bootstrap-server kafka.kafka.svc.cluster.local:9092 \
-  --topic test \
-  --producer-property security.protocol=SASL_PLAINTEXT \
-  --producer-property sasl.mechanism=PLAIN \
-  --producer-property sasl.jaas.config='org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka" password="kafka-secret";'
+# Контекст и узлы
+kubectl config get-contexts
+kubectl get nodes -o wide
+
+# ArgoCD Applications для Kafka
+kubectl get applications -n argocd -l app.kubernetes.io/name=kafka 2>/dev/null || \
+  kubectl get applications -n argocd | grep -E "kafka-operator|kafka-cluster"
+
+# Strimzi Operator (namespace strimzi)
+kubectl get pods -n strimzi
+kubectl get all -n strimzi
+
+# Kafka Cluster (namespace kafka)
+kubectl get pods -n kafka
+kubectl get kafka -n kafka
+kubectl get svc -n kafka
+
+# Статус Kafka CR (готовность брокеров)
+kubectl get kafka my-cluster -n kafka -o jsonpath='{.status.conditions[*].type}{"\n"}{.status.conditions[*].status}' 2>/dev/null
+kubectl describe kafka my-cluster -n kafka | grep -A 20 "Status:"
 ```
 
-## Конфигурация (application.yaml)
+**Ожидаемый результат:** в `strimzi` — под `strimzi-cluster-operator-*` в Running; в `kafka` — поды `my-cluster-kafka-*`, `my-cluster-zookeeper-*`, `entity-operator-*` в Running, сервис `my-cluster-kafka-bootstrap` на портах 9092/9093.
 
-| Параметр | Значение | Описание |
-|----------|----------|----------|
-| Namespace | `kafka` | Создаётся автоматически |
-| Controller | 1 реплика (controller+broker) | Один узел KRaft для dev/test |
-| StorageClass | `local-path` | Том 8Gi для данных |
-| NodePort (client) | 30092 | Доступ снаружи по `<node-ip>:30092` |
-| SASL user | `kafka` | Логин для клиентов |
-| SASL password | `kafka-secret` | Пароль (в production сменить) |
+</details>
 
-## Зависимости
+<details>
+<summary><strong>📋 Описание и компоненты</strong></summary>
 
-- ArgoCD установлен в кластере
-- StorageClass (например, `local-path`) для PVC
-- Доступ к Helm-репозиторию: `https://charts.bitnami.com/bitnami`
+---
 
-## Устранение неполадок
+Apache Kafka — распределённая платформа для потоковой обработки событий. Strimzi Operator управляет жизненным циклом Kafka в Kubernetes через CRD.
 
-- **Под в Pending:** проверьте `kubectl get pvc -n kafka` и наличие StorageClass.
-- **Не подключается снаружи:** убедитесь, что фаервол разрешает порт 30092 на ноде; проверьте `kubectl get svc -n kafka` — у сервиса должен быть NodePort 30092.
-- **SASL ошибка:** используйте логин `kafka` и пароль `kafka-secret` (как в values в application.yaml).
+### Архитектура развертывания
 
-## Production
+```mermaid
+graph TB
+    subgraph ArgoCD["ArgoCD"]
+        ArgoCD_Op["ArgoCD Application<br/>kafka-operator"]
+        ArgoCD_Cluster["ArgoCD Application<br/>kafka-cluster"]
+    end
 
-Для production рекомендуется:
+    subgraph Strimzi_NS["Namespace strimzi"]
+        Operator["Strimzi Cluster Operator<br/>CRD Controller"]
+    end
 
-- Увеличить реплики (controller/broker), использовать отдельные broker-узлы
-- Сменить пароль SASL и вынести его в Secret
-- Включить TLS (listeners SSL/SASL_SSL)
-- Настроить retention, мониторинг и бэкапы
+    subgraph Kafka_NS["Namespace kafka"]
+        ZK["ZooKeeper<br/>1 replica"]
+        Kafka["Kafka Brokers<br/>1 replica"]
+        EO["Entity Operator<br/>Topic + User"]
+    end
+
+    subgraph Infrastructure["Infrastructure"]
+        Storage["StorageClass<br/>local-path"]
+    end
+
+    ArgoCD_Op --> Operator
+    ArgoCD_Cluster --> ZK
+    ArgoCD_Cluster --> Kafka
+    ArgoCD_Cluster --> EO
+    Operator --> ZK
+    Operator --> Kafka
+    Operator --> EO
+    Kafka --> Storage
+    ZK --> Storage
+```
+
+### Компоненты
+
+- **Strimzi Cluster Operator**: Управляет Kafka, ZooKeeper, KafkaTopic, KafkaUser через CRD
+  - Развертывается через Helm chart: `https://strimzi.io/charts`
+  - Версия chart: **0.38.0** — образ оператора совместим со старыми CPU (без x86-64-v2), как в MinIO
+  - Namespace: `strimzi`
+  - Следит за namespace: `kafka`
+
+- **Kafka Cluster (my-cluster)**: Одноузловой кластер для dev/test
+  - ZooKeeper: 1 реплика, 5Gi PVC
+  - Kafka: 3.6.0, 1 реплика, 10Gi PVC, listeners plain:9092 и tls:9093
+  - Entity Operator: Topic Operator + User Operator
+
+- **Доступ:**
+  - Внутри кластера: `my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092` (plain), `:9093` (tls)
+
+- **Kafka UI**: веб-интерфейс [UI for Apache Kafka](https://github.com/provectus/kafka-ui) (provectuslabs/kafka-ui). Развёртывается в namespace `kafka`, подключается к `my-cluster-kafka-bootstrap:9092`. Ingress: `https://kafka-ui.lab.local` (Traefik + cert-manager).
+
+</details>
+
+<details>
+<summary><strong>📋 Структура файлов</strong></summary>
+
+---
+
+```
+kafka/
+├── operator/
+│   └── application.yaml   # ArgoCD Application для Strimzi Operator (Helm chart)
+├── cluster/
+│   ├── application.yaml  # ArgoCD Application для Kafka Cluster (указывает на Git)
+│   └── kafka.yaml        # Strimzi Kafka CRD (ZooKeeper + Kafka + Entity Operator)
+├── ui/
+│   ├── deployment.yaml   # Kafka UI (provectuslabs/kafka-ui)
+│   ├── service.yaml
+│   └── ingress.yaml     # kafka-ui.lab.local (Traefik, TLS)
+├── ui-application.yaml   # ArgoCD Application для Kafka UI (в kafka/, не в ui/ — иначе sync создаст Application в kafka)
+└── README.md            # Этот файл
+```
+
+**Пояснение:**
+
+- **`operator/application.yaml`**: ArgoCD Application для Strimzi Operator через Helm. Создаёт namespace `strimzi`, устанавливает CRD и Operator. Operator настроен на наблюдение за namespace `kafka`.
+
+- **`cluster/application.yaml`**: ArgoCD Application, источник — Git, путь `argocd-apps/kafka/cluster`. Sync-wave: "1" (после operator). Назначение — namespace `kafka`.
+
+- **`cluster/kafka.yaml`**: Custom Resource `Kafka` в namespace `kafka`. Описывает ZooKeeper, брокеры Kafka (1 реплика), Entity Operator, storage и ресурсы.
+
+- **`ui-application.yaml`**: ArgoCD Application для Kafka UI. Источник — Git, путь `argocd-apps/kafka/ui`. Sync-wave: "2" (после cluster). Разворачивает Deployment + Service + Ingress в namespace `kafka`.
+
+- **`ui/`**: Deployment (образ provectuslabs/kafka-ui:v0.7.2, env: bootstrap `my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092`), Service 8080, Ingress с хостом `kafka-ui.lab.local` (cert-manager, Traefik).
+
+</details>
+
+<details>
+<summary><strong>📋 Предварительные требования</strong></summary>
+
+---
+
+1. **Kubernetes 1.27+** (для Strimzi 0.49)
+2. **ArgoCD** установлен и настроен
+3. **StorageClass** (например, `local-path` в k3s)
+4. Репозиторий **k3s-test** добавлен в ArgoCD (или применяете манифесты из локального Git)
+
+</details>
+
+<details>
+<summary><strong>📋 Создание топиков и пользователей</strong></summary>
+
+---
+
+Топики и пользователи можно создавать через Strimzi CRD в том же namespace `kafka` (применять вручную или через Git):
+
+**Пример топика (KafkaTopic):**
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: my-topic
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 3
+  replicas: 1
+```
+
+**Пример пользователя (KafkaUser):**
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: my-user
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: my-topic
+        operations:
+          - Read
+          - Write
+```
+
+После создания KafkaUser в кластере появится Secret с credentials (например, `my-user`).
+
+</details>
+
+<details>
+<summary><strong>⚠️ Ошибка «CPU does not support x86-64-v2»</strong></summary>
+
+---
+
+**Симптомы:** под Strimzi operator в состоянии CrashLoopBackOff, в логах: `Fatal glibc error: CPU does not support x86-64-v2`.
+
+**Причина:** новые образы Strimzi (0.49+) собираются под x86-64-v2; старые CPU (или VM без передачи нужных инструкций) не поддерживают этот уровень.
+
+**Решение (как в MinIO):** в репозитории зафиксированы **Strimzi 0.38.0** и **Kafka 3.6.0** — образы совместимы с baseline x86-64. Не поднимайте версию chart/operator без проверки на вашем железе.
+
+</details>
