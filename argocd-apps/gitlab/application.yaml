@@ -70,7 +70,7 @@ spec:
             replicas: 1
             resources:
               requests:
-                cpu: 50m
+                cpu: 100m
                 memory: 768Mi
               limits:
                 cpu: 500m
@@ -79,7 +79,7 @@ spec:
             replicas: 1
             resources:
               requests:
-                cpu: 100m
+                cpu: 200m
                 memory: 512Mi
               limits:
                 cpu: 400m
@@ -90,7 +90,7 @@ spec:
               storageClass: local-path
             resources:
               requests:
-                cpu: 50m
+                cpu: 100m
                 memory: 256Mi
               limits:
                 cpu: 200m
@@ -99,7 +99,7 @@ spec:
             replicas: 1
             resources:
               requests:
-                cpu: 25m
+                cpu: 100m
                 memory: 64Mi
               limits:
                 cpu: 100m
