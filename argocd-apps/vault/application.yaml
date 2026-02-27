@@ -12,7 +12,7 @@ spec:
 
   source:
     repoURL: https://github.com/barmaglot351/k3s-test.git
-    path: 03-argocd/vault/helm/charts/vault-1.14.0
+    path: argocd-apps/vault/helm/charts/vault-1.14.0
     targetRevision: main
     helm:
       releaseName: vault
