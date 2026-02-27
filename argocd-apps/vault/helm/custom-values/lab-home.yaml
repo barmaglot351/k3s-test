@@ -8,7 +8,7 @@ global:
   tlsDisable: false
 injector:
   image:
-    repository: "hashicorp/vault-k3s"
+    repository: "hashicorp/vault-k8s"
     tag: "1.2.1"
   agentImage:
     repository: "hashicorp/vault"
