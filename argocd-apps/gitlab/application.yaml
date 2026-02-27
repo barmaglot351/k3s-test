@@ -13,19 +13,14 @@ spec:
       values: |
         # === ОСНОВНЫЕ НАСТРОЙКИ ===
         installCertmanager: false
-
         upgradeCheck:
           enabled: false
-
         nginx-ingress:
           enabled: false
-
         prometheus:
           install: false
-
         registry:
           enabled: false
-
         gitlab-runner:
           install: false
 
@@ -43,10 +38,8 @@ spec:
               traefik.ingress.kubernetes.io/router.tls: "true"
             tls:
               enabled: true
-
           kas:
             enabled: false
-
           appConfig:
             artifacts:
               enabled: false
@@ -56,7 +49,6 @@ spec:
               enabled: false
             packages:
               enabled: false
-
           minio:
             enabled: false
           grafana:
@@ -70,42 +62,44 @@ spec:
             replicas: 1
             resources:
               requests:
-                cpu: 300m
-                memory: 768Mi
+                cpu: 150m 
+                memory: 512Mi   
               limits:
-                cpu: 1000m
-                memory: 2Gi
+                cpu: 800m
+                memory: 1.5Gi
+            livenessProbe:
+              initialDelaySeconds: 300 
+            readinessProbe:
+              initialDelaySeconds: 300
           sidekiq:
-            replicas: 1
+            replicas: 0              # можно поставить 0 если не нужен background
             resources:
               requests:
-                cpu: 400m
-                memory: 512Mi
+                cpu: 200m
+                memory: 384Mi
               limits:
-                cpu: 500m
-                memory: 1.5Gi
+                cpu: 400m
+                memory: 1Gi
           gitaly:
             replicas: 1
             persistence:
               storageClass: local-path
             resources:
               requests:
-                cpu: 300m
-                memory: 512Mi
+                cpu: 150m     
+                memory: 384Mi
               limits:
-                cpu: 400m
-                memory: 512Mi
+                cpu: 300m
+                memory: 768Mi
           gitlab-shell:
             replicas: 1
             resources:
               requests:
-                cpu: 100m
+                cpu: 50m
                 memory: 64Mi
               limits:
                 cpu: 100m
                 memory: 128Mi
-          kas:
-            enabled: false
           gitlab-exporter:
             enabled: false
           toolbox:
@@ -123,11 +117,21 @@ spec:
           primary:
             resources:
               requests:
-                cpu: 50m
-                memory: 256Mi
+                cpu: 20m       
+                memory: 192Mi
               limits:
-                cpu: 200m
-                memory: 512Mi
+                cpu: 300m
+                memory: 768Mi
+            livenessProbe:
+              initialDelaySeconds: 180 
+              periodSeconds: 20
+              timeoutSeconds: 5
+              failureThreshold: 12
+            readinessProbe:
+              initialDelaySeconds: 180
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 30       # больше попыток
 
         redis:
           install: true
@@ -139,7 +143,7 @@ spec:
               storageClass: local-path
             resources:
               requests:
-                cpu: 25m
+                cpu: 20m       
                 memory: 64Mi
               limits:
                 cpu: 100m
