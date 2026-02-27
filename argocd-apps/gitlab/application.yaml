@@ -68,14 +68,42 @@ spec:
             enabled: false
           webservice:
             replicas: 1
+            resources:
+              requests:
+                cpu: 50m
+                memory: 768Mi
+              limits:
+                cpu: 500m
+                memory: 2Gi
           sidekiq:
             replicas: 1
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                cpu: 400m
+                memory: 1.5Gi
           gitaly:
             replicas: 1
             persistence:
               storageClass: local-path
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                cpu: 200m
+                memory: 512Mi
           gitlab-shell:
             replicas: 1
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
           kas:
             enabled: false
           gitlab-exporter:
@@ -92,6 +120,14 @@ spec:
           auth:
             username: gitlab
             password: "gitlab123"
+          primary:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                cpu: 200m
+                memory: 512Mi
 
         redis:
           install: true
@@ -101,6 +137,13 @@ spec:
               enabled: true
               size: 2Gi
               storageClass: local-path
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                cpu: 100m
+                memory: 256Mi
           replica:
             replicaCount: 0
 
