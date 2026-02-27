@@ -32,7 +32,7 @@ server:
     size: 10Gi
     storageClass: null
   dataStorage:
-    enabled: false
+    enabled: true
     mountPath: /vault/data
     size: 10Gi
     storageClass: null
@@ -126,7 +126,7 @@ server:
   updateStrategyType: OnDelete
 serverTelemetry:
   prometheusRules:
-    enabled: true
+    enabled: false
     rules: []
   serviceMonitor:
     enabled: false
