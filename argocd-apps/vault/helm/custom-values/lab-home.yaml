@@ -4,7 +4,7 @@ fullnameOverride: vault
 global:
   enabled: true
   serverTelemetry:
-    prometheusOperator: true
+    prometheusOperator: false
   tlsDisable: false
 injector:
   image:
