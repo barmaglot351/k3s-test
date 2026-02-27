@@ -32,7 +32,7 @@ server:
     size: 10Gi
     storageClass: null
   dataStorage:
-    enabled: true
+    enabled: false
     mountPath: /vault/data
     size: 10Gi
     storageClass: null
@@ -129,7 +129,7 @@ serverTelemetry:
     enabled: true
     rules: []
   serviceMonitor:
-    enabled: true
+    enabled: false
 ui:
   enabled: true
   externalPort: 8200
