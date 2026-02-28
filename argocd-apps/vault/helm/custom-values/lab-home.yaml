@@ -101,6 +101,9 @@ server:
       - secretName: vault-ingress-tls
         hosts:
           - vault.lab-home.com
+  service:
+    annotations:
+      traefik.ingress.kubernetes.io/service.serversscheme: "https"
   livenessProbe:
     enabled: true
     initialDelaySeconds: 60
