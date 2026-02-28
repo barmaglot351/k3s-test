@@ -10,14 +10,17 @@ metadata:
 spec:
   project: default
 
-  source:
-    repoURL: https://github.com/barmaglot351/k3s-test.git
-    path: argocd-apps/vault/helm/charts/vault-1.14.0
-    targetRevision: main
-    helm:
-      releaseName: vault
-      valueFiles:
-        - ../../custom-values/lab-home.yaml
+  sources:
+    - repoURL: https://github.com/barmaglot351/k3s-test.git
+      path: argocd-apps/vault/helm/charts/vault-1.14.0
+      targetRevision: main
+      helm:
+        releaseName: vault
+        valueFiles:
+          - ../../custom-values/lab-home.yaml
+    - repoURL: https://github.com/barmaglot351/k3s-test.git
+      path: argocd-apps/vault/manifests
+      targetRevision: main
 
   destination:
     server: https://kubernetes.default.svc

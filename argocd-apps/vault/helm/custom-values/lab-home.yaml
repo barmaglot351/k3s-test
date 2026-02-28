@@ -104,6 +104,7 @@ server:
   service:
     annotations:
       traefik.ingress.kubernetes.io/service.serversscheme: "https"
+      traefik.ingress.kubernetes.io/service.serverstransport: vault-vault-backend-transport@kubernetescrd
   livenessProbe:
     enabled: true
     initialDelaySeconds: 60

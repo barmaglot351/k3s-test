@@ -9,6 +9,14 @@
 - **cert-manager** и ClusterIssuer `selfsigned-issuer` (TLS для Ingress)
 - **preconfigure** для Vault server и injector — см. раздел «Сертификаты» ниже.
 
+### Traefik и ошибка Internal Server Error
+
+Если при открытии https://vault.lab-home.com/ появляется **Internal Server Error**, Traefik не доверяет самоподписанному сертификату Vault. Приложение Vault разворачивает **ServersTransport** (`manifests/servers-transport.yaml`) с `insecureSkipVerify: true`, и на сервис Vault вешается аннотация для его использования.
+
+Если в кластере **нет CRD Traefik** (например, стандартный k3s без CRD-провайдера), при синхронизации появится ошибка вида `no matches for kind "ServersTransport"`. Тогда:
+- либо установите CRD Traefik (например, через [официальный Helm chart](https://github.com/traefik/traefik-helm-chart) с включённым `providers.kubernetesCRD`),
+- либо уберите из Application второй source (`argocd-apps/vault/manifests`) и из `lab-home.yaml` аннотацию `traefik.ingress.kubernetes.io/service.serverstransport`; после этого настройте в Traefik глобальный transport с `insecureSkipVerify: true` вручную, если ваша версия это поддерживает.
+
 ## Сертификаты (как в vault_test)
 
 - **Ingress:** cert-manager по аннотации создаёт Secret `vault-ingress-tls`. Отдельный Certificate не нужен.
