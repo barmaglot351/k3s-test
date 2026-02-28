@@ -87,10 +87,11 @@ server:
     activeService: true
     annotations:
       cert-manager.io/cluster-issuer: "selfsigned-issuer"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/service.serversscheme: "https"
     enabled: true
-    ingressClassName: nginx
+    ingressClassName: traefik
     hosts:
       - host: vault.lab-home.com
         paths: []
