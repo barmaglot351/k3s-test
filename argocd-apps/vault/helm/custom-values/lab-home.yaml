@@ -84,7 +84,7 @@ server:
     repository: "hashicorp/vault"
     tag: 1.14.0
   ingress:
-    activeService: true
+    activeService: false
     annotations:
       cert-manager.io/cluster-issuer: "selfsigned-issuer"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
