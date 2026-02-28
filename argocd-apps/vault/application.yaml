@@ -1,5 +1,5 @@
+# ArgoCD Application для Vault. Применить: kubectl apply -f argocd-apps/vault/application.yaml
 ---
-# ArgoCD Application для Vault
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,17 +10,14 @@ metadata:
 spec:
   project: default
 
-  sources:
-    - repoURL: https://github.com/barmaglot351/k3s-test.git
-      path: argocd-apps/vault/helm/charts/vault-1.14.0
-      targetRevision: main
-      helm:
-        releaseName: vault
-        valueFiles:
-          - ../../custom-values/lab-home.yaml
-    - repoURL: https://github.com/barmaglot351/k3s-test.git
-      path: argocd-apps/vault/manifests
-      targetRevision: main
+  source:
+    repoURL: https://github.com/mistermedved01/k3s-test.git
+    path: argocd-apps/vault/helm/charts/vault-1.14.0
+    targetRevision: main
+    helm:
+      releaseName: vault
+      valueFiles:
+        - ../../custom-values/lab.local.yaml
 
   destination:
     server: https://kubernetes.default.svc
