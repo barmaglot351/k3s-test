@@ -11,7 +11,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/mistermedved01/k3s-test.git
+    repoURL: https://github.com/barmaglot351/k3s-test.git
     path: argocd-apps/vault/helm/charts/vault-1.14.0
     targetRevision: main
     helm:
