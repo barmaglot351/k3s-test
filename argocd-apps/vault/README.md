@@ -4,14 +4,40 @@
 
 Домен и доступ: **vault.lab.local** (окружение lab.local, Traefik).
 
-## Использование
+## Сертификаты
 
-1. **Подключить Vault:** применить ArgoCD Application из этого каталога:
-   ```bash
-   kubectl apply -f argocd-apps/vault/application.yaml
-   ```
-2. Перед синхом выполнить **preconfigure** (сертификаты) — см. раздел «Сертификаты» ниже.
-3. В `/etc/hosts` (или DNS) должна быть запись для **vault.lab.local** (IP ноды или Ingress).
+- **Ingress:** cert-manager по аннотации создаёт Secret `vault-ingress-tls`. Отдельный Certificate не нужен.
+- **Vault server и injector:** preconfigure — в `preconfigure/<PROJECT>/` лежат манифесты `vault-ca` (ConfigMap), `vault-crt`, `vault-injector-crt` (Secret). Чарт монтирует их в под.
+
+Перед деплоем: namespace и preconfigure (сертификаты Vault/injector):
+
+```bash
+# создаёт namespace vault в Kubernetes, но при этом делает это безопасно и идемпотентно
+kubectl create namespace vault --dry-run=client -o yaml | kubectl apply -f -
+
+cd argocd-apps/vault/preconfigure/scripts
+
+# генерируем ключи, эти ключи псохраняем в проект на гитхабе
+sudo bash generate-vault-certs.sh lab.local vault vault
+
+kubectl create namespace vault --dry-run=client -o yaml \| kubectl apply -f -
+
+# применяет (или создаёт/обновляет) все Kubernetes-ресурсы, которые находятся в директории
+kubectl apply -f argocd-apps/vault/preconfigure/lab.local/
+
+
+kubectl apply -f argocd-apps/vault/serverstransport.yaml
+kubectl apply -f argocd-apps/vault/application.yaml
+
+# инициализируем ключ и токен
+kubectl exec -it vault-0 -n vault -- vault operator init -key-shares=1 -key-threshold=1
+kubectl exec -it vault-0 -n vault -- vault operator unseal <Unseal Key 1>
+
+# если перезагрузили под или сервер то запускаем заново
+kubectl exec -it vault-0 -n vault -- vault operator unseal <Unseal Key 1>
+
+В `/etc/hosts` (или DNS) должна быть запись для **vault.lab.local** (IP ноды или Ingress).
+
 
 ## Отличия от варианта для Kubernetes
 
@@ -26,18 +52,6 @@
 - **cert-manager** и ClusterIssuer `selfsigned-issuer` (TLS для Ingress).
 - **preconfigure** для Vault server и injector — см. раздел «Сертификаты» ниже.
 
-## Сертификаты
-
-- **Ingress:** cert-manager по аннотации создаёт Secret `vault-ingress-tls`. Отдельный Certificate не нужен.
-- **Vault server и injector:** preconfigure — в `preconfigure/<PROJECT>/` лежат манифесты `vault-ca` (ConfigMap), `vault-crt`, `vault-injector-crt` (Secret). Чарт монтирует их в под.
-
-Перед деплоем: namespace и preconfigure (сертификаты Vault/injector):
-
-```bash
-kubectl create namespace vault --dry-run=client -o yaml | kubectl apply -f -
-cd argocd-apps/vault/preconfigure/scripts
-./generate-vault-certs.sh lab.local vault vault
-kubectl apply -f argocd-apps/vault/preconfigure/lab.local/
 ```
 
 ### Схема
