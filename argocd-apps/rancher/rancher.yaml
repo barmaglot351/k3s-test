@@ -20,18 +20,15 @@ spec:
     helm:
       # Inline values (основные параметры)
       values: |
-        hostname: rancher.lab-home.com
+        hostname: rancher.lab.local
         replicas: 1
         ingress:
           enabled: true
           ingressClassName: traefik
           annotations:
             cert-manager.io/cluster-issuer: "selfsigned-issuer"
-            nginx.ingress.kubernetes.io/ssl-redirect: "true"
-            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-            nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-            # Аннотация для совместимости со старыми версиями ingress-nginx
-            kubernetes.io/ingress.class: nginx
+            # Класс ingress для Traefik в k3s
+            kubernetes.io/ingress.class: traefik
           tls:
             enabled: true
             source: secret
@@ -53,11 +50,11 @@ spec:
         # Настройки для HTTPS режима
         extraEnv:
           - name: CATTLE_SERVER_URL
-            value: https://rancher.lab-home.com
+            value: https://rancher.lab.local
         global:
           cattle:
             ssl:
-              fqdn: rancher.lab-home.com
+              fqdn: rancher.lab.local
         telemetry:
           enabled: false
       
